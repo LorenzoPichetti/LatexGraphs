@@ -117,35 +117,35 @@ class LatexLattice:
                         
     # ---------- printing ----------
     
-    def printLatex(self, nstyle = "little", estyle = "thiny", translated = False):
+    def printLatex(self, output= None, nstyle = "little", estyle = "thiny", translated = False):
         self.set_axes()
         self.set_base()
         self.graph.set_node_style(nstyle)
         self.graph.set_edges_style(estyle)
         
         
-        print("\\begin{tikzpicture}", file= self.graph.output)
+        print("\\begin{tikzpicture}", file= output)
         
-        print("\t\\begin{pgfonlayer}{nodelayer}", file= self.graph.output)
-        print("\t\\clip (%f,%f) rectangle (%f,%f);" % (self.x[0], self.y[0], self.x[1], self.y[1]), file= self.graph.output)
+        print("\t\\begin{pgfonlayer}{nodelayer}", file= output)
+        print("\t\\clip (%f,%f) rectangle (%f,%f);" % (self.x[0], self.y[0], self.x[1], self.y[1]), file= output)
         
-        self.axes.nodes()
-        self.graph.nodes()
-        print("\t\end{pgfonlayer}", file= self.graph.output)
+        self.axes.nodes(output)
+        self.graph.nodes(output)
+        print("\t\end{pgfonlayer}", file= output)
         
-        print("\t\\begin{pgfonlayer}{edgelayer}", file= self.graph.output)
-        print("\t\\clip (%f,%f) rectangle (%f,%f);" % (self.x[0], self.y[0], self.x[1], self.y[1]), file= self.graph.output)
+        print("\t\\begin{pgfonlayer}{edgelayer}", file= output)
+        print("\t\\clip (%f,%f) rectangle (%f,%f);" % (self.x[0], self.y[0], self.x[1], self.y[1]), file= output)
         if self.grid:
-            print("\t\\draw[thick,color=gray!25!white,step=1cm,dashed] (%f,%f) grid (%f,%f);" % (self.x[0], self.y[0], self.x[1], self.y[1]), file= self.graph.output)
-        self.axes.edges(None)
+            print("\t\\draw[thick,color=gray!25!white,step=1cm,dashed] (%f,%f) grid (%f,%f);" % (self.x[0], self.y[0], self.x[1], self.y[1]), file= output)
+        self.axes.edges(output)
         
         if translated:
-            self.graph.edges([(self.a[0] + self.b[0])/2, (self.a[1] + self.b[1])/2])
+            self.graph.edges(output, [(self.a[0] + self.b[0])/2, (self.a[1] + self.b[1])/2])
         else:
-            self.graph.edges(None)
+            self.graph.edges(output)
             
         if self.base_on:
-            self.base.edges()
+            self.base.edges(output)
         if self.parallelepid_on:
             print("""
             \\fill[lightgray] (0,0) -- (%d,%d) -- (%d,%d) -- (%d,%d) -- (0,0);
@@ -160,13 +160,13 @@ class LatexLattice:
             bx = self.b[0]
             by = self.b[1]
             r = self.corners_radius
-            print("\t\t\\begin{scope}", file= self.graph.output)
-            print("\t\t\t\clip (%f,%f) -- (%f,%f) -- (%f,%f) -- (%f,%f) -- (%f,%f);" % (vx,vy,vx+ax,vy+ay,vx+ax+bx,vy+ay+by,vx+bx,vy+by,vx,vy), file= self.graph.output)
-            print("\t\t\t\\fill[lime, opacity=0.5] (%f,%f) circle (%f);" % (vx,vy, r), file= self.graph.output)
-            print("\t\t\t\\fill[lime, opacity=0.5] (%f,%f) circle (%f);" % (vx+ax,vy+ay, r), file= self.graph.output)
-            print("\t\t\t\\fill[lime, opacity=0.5] (%f,%f) circle (%f);" % (vx+ax+bx,vy+ay+by, r), file= self.graph.output)
-            print("\t\t\t\\fill[lime, opacity=0.5] (%f,%f) circle (%f);" % (vx+bx,vy+by, r), file= self.graph.output)
-            print("\t\t\end{scope}", file= self.graph.output)
-        print("\t\end{pgfonlayer}", file= self.graph.output)
+            print("\t\t\\begin{scope}", file= output)
+            print("\t\t\t\clip (%f,%f) -- (%f,%f) -- (%f,%f) -- (%f,%f) -- (%f,%f);" % (vx,vy,vx+ax,vy+ay,vx+ax+bx,vy+ay+by,vx+bx,vy+by,vx,vy), file= output)
+            print("\t\t\t\\fill[lime, opacity=0.5] (%f,%f) circle (%f);" % (vx,vy, r), file= output)
+            print("\t\t\t\\fill[lime, opacity=0.5] (%f,%f) circle (%f);" % (vx+ax,vy+ay, r), file= output)
+            print("\t\t\t\\fill[lime, opacity=0.5] (%f,%f) circle (%f);" % (vx+ax+bx,vy+ay+by, r), file= output)
+            print("\t\t\t\\fill[lime, opacity=0.5] (%f,%f) circle (%f);" % (vx+bx,vy+by, r), file= output)
+            print("\t\t\end{scope}", file= output)
+        print("\t\end{pgfonlayer}", file= output)
         
-        print("\end{tikzpicture}", file= self.graph.output)
+        print("\end{tikzpicture}", file= output)

@@ -13,6 +13,9 @@
 #  limitations under the License.
 
 
+from LatexGraph import *
+from LatexLattice import *
+
 class LatexElement:
     def __init__ (self):
         self.style = "section"
@@ -20,29 +23,113 @@ class LatexElement:
         self.pretext = "This is the pre-text"
         self.element = None
         self.posttext = "This is the post-text"
-        self.outfile = None
         
+        
+    def printLatex(self, outfile= None):
+        if (outfile == None):
+            print("outputfile ---> None")
+        else:
+            print("outputfile ---> ")
+            print(outfile)
+        
+        if (self.style != "frame"):
+            print("\\" + self.style + "{" + self.title + "}", file= outfile)
+        else:
+            print("\\begin{frame}{" + self.title + "}", file= outfile)
+        print(self.pretext, file= outfile)
+        
+        if (self.element == None):
+            print("element", file= outfile)
+        else:
+            self.element.printLatex(outfile)
+        
+        print(self.posttext, file= outfile)
+        if (self.style == "frame"):
+            print("\end{frame}", file= outfile)
+        
+class LatexFile:
+    def __init__ (self):
+        self.output = None
+    
     def start_file(self):
-        if (self.outfile != None):
-            fp = open(self.outfile, "w")
+        if (self.output != None):
+            fp = open(self.output, "w")
             print("", file= fp)
             fp.close()
-            fp = open(self.outfile, "a+")
-            self.outfile = fp
+            fp = open(self.output, "a+")
+            self.output = fp
         
     def end_file(self):
-        if (self.outfile != None):
-            self.outfile.close()
+        if (self.output != None):
+            self.output.close()
+            
+    def outputfile(self):
+        return(self.output)
+    
+    def define_document_tikzpicture(self):
+        print(
+    """
+\\title{GE460: Applicazioni alla crittografia: costruzioni di Hash tramite expander graphs}
+\\author{Lorenzo Pichetti}
+\date{2021}
+
+\documentclass{article}
+    """, file= self.output)
+    
+        print_preambles(self.output)
+        print(
+    """
+\\usepackage[graphics,tightpage,active]{preview}
+\PreviewEnvironment{tikzpicture}
+\\newlength{\imagewidth}
+\\newlength{\imagescale}
+
+\\begin{document}
+
+\maketitle
+    
+    """, file= self.output)
         
-    def printLatex(self):
-        self.start_file()
-        if (self.style != "frame"):
-            print("\\" + self.style + "{" + self.title + "}", file= self.outfile)
-        else:
-            print("\\begin{frame}{" + self.title + "}", file= self.outfile)
-        print(self.pretext, file= self.outfile)
-        print("element", file= self.outfile)
-        print(self.posttext, file= self.outfile)
-        if (self.style == "frame"):
-            print("\end{frame}", file= self.outfile)
-        self.end_file()
+    def define_document_article(self):
+        print(
+    """
+\\title{GE460: Applicazioni alla crittografia: costruzioni di Hash tramite expander graphs}
+\\author{Lorenzo Pichetti}
+\date{2021}
+
+\documentclass{article}
+    """, file= self.output)
+    
+        print_preambles(self.output)
+        print(
+    """
+\\begin{document}
+
+\maketitle
+    
+    """, file= self.output)
+        
+    def define_document_beamer(self):
+        print(
+    """
+\documentclass{beamer}
+\\usetheme{Berkeley}
+\\usecolortheme{spruce}
+%Information to be included in the title page:
+\\title{Lattice Cryptography, SVP, and Sieving Algorithms}
+\\author{Lorenzo Pichetti}
+\institute{Universita\` degli studi di Roma Tre}
+\date{2021}
+    """, file= self.output)
+    
+        print_preambles(self.output)
+        print(
+    """
+\\begin{document}
+
+\maketitle
+    
+    """, file= self.output)
+        
+    def end_document(self):
+        print("\end{document}", file= self.output)
