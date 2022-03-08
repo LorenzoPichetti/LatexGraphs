@@ -18,10 +18,10 @@ import math
 import ast
 import time
 
-def print_preambles():
-    '''
+def print_preambles(output):
+    """
     This function prints the needed TIKZ-preambles for the LaTex document.
-    '''
+    """
     print("""% ========== Tikz setting ==========
 %\\usepackage[svgnames]{xcolor}
 \\usepackage{tikz}
@@ -54,16 +54,15 @@ def print_preambles():
 \\tikzstyle{bluearrow}=[-latex,draw=blue,line width=3.000]
 \\tikzstyle{axe}=[->,draw=black,line width=2.000]
 \\tikzstyle{thiny}=[-,draw=lightgray,line width=1.000]
-\pgfplotsset{compat=1.17}
 
 \\usepackage{tikzscale}
-""")
+""", file= output)
     
 class LatexGraph:
     """
     Given a graph's G, a LatexGraph is a Python data-structur that contains all the G's necessary information to
     to prints it as a .tikz and .tex file.
-    It is composed by 9 parameters:
+    It is composed by 5 parameters:
         -----------
         > vertices : set
             Each vertex of G can be represented with a LatexVertex (see its documentation); this set contains
@@ -71,9 +70,6 @@ class LatexGraph:
         
         > numVertices : int
             It saves the number of vertices which compose G
-                
-        > output : FILE
-            It is the file in which printing the output LaTex code (if fp is None, the code is printed on the terminal)
             
         > node_style  : str
             It represents the node's style to use for printing the vertices of G. The node_style must be one between 'rn',
@@ -82,11 +78,6 @@ class LatexGraph:
         > edges_style  : str
             It represents the edge's style to use for printing the edges of G. The edges_style must be one between 'simple',
                 'arrow', 'tick', 'redstyle', 'bluestyle', 'greenstyle', 'redarrow', and the other one defined in the preambles.
-                
-        > prefix : str
-        > sufix  : str
-        > title  : str
-            These three field are used to print some text before and after the tikz code
             
         > nodeprefix : str
             This string can be usefull for generate overlapped graphs without generate not real edges
@@ -97,12 +88,8 @@ class LatexGraph:
     def __init__(self, fp= None):
         self.vertices = {}
         self.numVertices = 0
-        self.output = fp
         self.node_style = "none"
         self.edges_style = "none"
-        self.prefix = "%s"
-        self.title = ""
-        self.sufix = ""
         self.nodeprefix = ""
 
     # ---------------- Graph function ---------------------        
@@ -142,44 +129,12 @@ class LatexGraph:
         
     def set_edges_style(self, string):
         self.edges_style = string
-    
-    def set_file(self, fp):
-        self.output = fp
         
-    def start_file(self, s):
-        fp = open(s, "w")
-        print("", file= fp)
-        fp.close()
-        fp = open(s, "a+")
-        self.set_file(fp)
-        
-    def end_file(self):
-        self.output.close()
-        
-    def set_prefix(self, string):
-        self.prefix = string
-            
-    def set_sufix(self, string):
-        self.sufix = string    
-    
-    def set_title(self, string):
-        self.title = string
-        
-    def article(self):
-        """ This function is used to print the graph in a LaTex file of class article """
-        self.set_prefix("\subsubsection{%s}")
-        self.set_sufix("")
-        
-    def beamer(self, supertitle= ""):
-        """ This function is used to print the graph in a Beamer file """
-        s = "\\begin{frame}%s" % (supertitle)
-        self.set_prefix(s + "{%s}")
-        self.set_sufix("\end{frame}")
         
     # --------------------- Tikz functions -------------------------
     # The following functions are used to print the LaTex/Tikz code
     
-    def nodes(self):
+    def nodes(self, output):
         for i in list(self.vertices.keys()):
             v = self.getVertex(i)
             if v.color==None:
@@ -195,40 +150,36 @@ class LatexGraph:
                     vertex_string = "\color{white} %s" % v.name
             
 
-            print("\t\t\\node [style=%s] (%d%s) at (%1.3f,%1.3f) {%s};" % (vertex_color, i, self.nodeprefix, v.position[0], v.position[1], vertex_string), file= self.output)
+            print("\t\t\\node [style=%s] (%d%s) at (%1.3f,%1.3f) {%s};" % (vertex_color, i, self.nodeprefix, v.position[0], v.position[1], vertex_string), file= output)
             
         
     def edge_middle_string(self, v, u, s=None):
         middle_string = "to"
         return middle_string
         
-    def edges(self, translated= None):
+    def edges(self, output, translated= None):
         for i in self.vertices:
             v = self.getVertex(i)
             for u in v.connectedTo:
-                print("\t\t\draw [style=%s] (%d%s) %s (%d%s);" % (self.edges_style, v.getId(), self.nodeprefix, self.edge_middle_string(v, u), u.getId(), self.nodeprefix), file= self.output)
+                print("\t\t\draw [style=%s] (%d%s) %s (%d%s);" % (self.edges_style, v.getId(), self.nodeprefix, self.edge_middle_string(v, u), u.getId(), self.nodeprefix), file= output)
                 if translated != None:
-                    print("\t\t\draw [style=thiny, color=green!75!white] (%1.3f,%1.3f) %s (%1.3f,%1.3f);" % ( v.position[0] - translated[0], v.position[1] - translated[1], self.edge_middle_string(v, u), u.position[0] - translated[0], u.position[1] - translated[1]), file= self.output)
+                    print("\t\t\draw [style=thiny, color=green!75!white] (%1.3f,%1.3f) %s (%1.3f,%1.3f);" % ( v.position[0] - translated[0], v.position[1] - translated[1], self.edge_middle_string(v, u), u.position[0] - translated[0], u.position[1] - translated[1]), file= output)
                 
         
         
         
-    def printLatex(self, title= ""):
-        self.set_title(title)
+    def printLatex(self, output= None):
+        print("\\begin{tikzpicture}", file= output)
         
-        print(self.prefix % (self.title), file= self.output)
-        print("\\begin{tikzpicture}", file= self.output)
+        print("\t\\begin{pgfonlayer}{nodelayer}", file= output)
+        self.nodes(output)
+        print("\t\end{pgfonlayer}", file= output)
         
-        print("\t\\begin{pgfonlayer}{nodelayer}", file= self.output)
-        self.nodes()
-        print("\t\end{pgfonlayer}", file= self.output)
+        print("\t\\begin{pgfonlayer}{edgelayer}", file= output)
+        self.edges(output)
+        print("\t\end{pgfonlayer}", file= output)
         
-        print("\t\\begin{pgfonlayer}{edgelayer}", file= self.output)
-        self.edges()
-        print("\t\end{pgfonlayer}", file= self.output)
-        
-        print("\end{tikzpicture}", file= self.output)
-        print(self.sufix, file= self.output)
+        print("\end{tikzpicture}", file= output)
                 
 class LatexVertex:
     """
