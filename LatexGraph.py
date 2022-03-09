@@ -35,11 +35,11 @@ def print_preambles(output):
 
 \\tikzstyle{none}=[inner sep=0pt]
 
-\\tikzstyle{rn}=[circle,fill=red,draw=black,line width=0.8 pt]
-\\tikzstyle{gn}=[circle,fill=lime,draw=black,line width=0.8 pt]
-\\tikzstyle{yn}=[circle,fill=yellow,draw=black,line width=0.8 pt]
-\\tikzstyle{blstyle}=[circle,fill=black,draw=black]
-\\tikzstyle{wstyle}=[circle,fill=white,draw=black]
+\\tikzstyle{red}=[circle,fill=red,draw=black,line width=0.8 pt]
+\\tikzstyle{green}=[circle,fill=lime,draw=black,line width=0.8 pt]
+\\tikzstyle{yellow}=[circle,fill=yellow,draw=black,line width=0.8 pt]
+\\tikzstyle{black}=[circle,fill=black,draw=black]
+\\tikzstyle{white}=[circle,fill=white,draw=black]
 \\tikzstyle{little}=[circle,fill=gray,draw=gray,scale=0.5 pt]
 
 \\tikzstyle{simple}=[-,draw=white,line width=3.000]
@@ -144,7 +144,7 @@ class LatexGraph:
             if v.name==None:
                 vertex_string = ""
             else:
-                if vertex_color != "blstyle":
+                if vertex_color != "black":
                     vertex_string = "%s" % v.name
                 else:
                     vertex_string = "\color{white} %s" % v.name
@@ -168,7 +168,7 @@ class LatexGraph:
         
         
         
-    def printLatex(self, output= None, prefix= ""):
+    def printTikz(self, output= None, prefix= ""):
         print(prefix + "\\begin{tikzpicture}", file= output)
         
         print(prefix + "\t\\begin{pgfonlayer}{nodelayer}", file= output)
@@ -244,3 +244,18 @@ class LatexVertex:
     def getId(self):
         """ It returns the vertex id """
         return self.id
+    
+def testGraph():
+    G = LatexGraph()
+    G.addVertex(0, [0,0])
+    G.getVertex(0).name = 0
+    G.addVertex(1, [2,0])
+    G.getVertex(1).name = 1
+    G.addVertex(2, [1,1])
+    G.getVertex(2).name = 2
+    G.addEdge(0,1)
+    G.addEdge(1,2)
+    G.addEdge(1,0)
+    G.set_node_style("white")
+    G.set_edges_style("bluearrow")
+    return(G)

@@ -22,6 +22,8 @@ class LatexLattice:
         self.x = [-5,5]
         self.y = [-5,5]
         self.graph = LatexGraph()
+        self.graph.set_node_style("little")
+        self.graph.set_edges_style("thiny")
         self.graph.addVertex(0, [0,0])
         self.minx = 1
         self.miny = 1
@@ -117,11 +119,9 @@ class LatexLattice:
                         
     # ---------- printing ----------
     
-    def printLatex(self, output= None, prefix= "", nstyle = "little", estyle = "thiny", translated = False):
+    def printTikz(self, output= None, prefix= "", translated = False):
         self.set_axes()
         self.set_base()
-        self.graph.set_node_style(nstyle)
-        self.graph.set_edges_style(estyle)
         
         
         print(prefix + "\\begin{tikzpicture}", file= output)
