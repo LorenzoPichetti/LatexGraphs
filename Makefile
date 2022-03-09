@@ -2,16 +2,17 @@
 PY=python3
 LIBS= lib.o
 FLAGS= -lm -lssl -lcrypto -g
+FNAME= test
 
 default:
 	echo no default
 
 test:
-	$(PY) testGraph.py
-	$(PY) testLattice.py
 	$(PY) testElement.py
-	pdflatex test.tex
-	okular test.pdf &
+	
+pdf:
+	pdflatex $(FNAME).tex
+	okular $(FNAME).pdf &
 	
 clean:
-	rm test.*
+	rm $(FNAME).*
