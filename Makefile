@@ -14,8 +14,4 @@ test:
 	okular test.pdf &
 	
 clean:
-	rm *.log
-	rm *.aux
-	rm *.gz
-	rm *.pdf
-	rm *.txt
+	rm test.*

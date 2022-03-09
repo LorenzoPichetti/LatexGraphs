@@ -134,7 +134,7 @@ class LatexGraph:
     # --------------------- Tikz functions -------------------------
     # The following functions are used to print the LaTex/Tikz code
     
-    def nodes(self, output):
+    def nodes(self, output, prefix= ""):
         for i in list(self.vertices.keys()):
             v = self.getVertex(i)
             if v.color==None:
@@ -150,36 +150,36 @@ class LatexGraph:
                     vertex_string = "\color{white} %s" % v.name
             
 
-            print("\t\t\\node [style=%s] (%d%s) at (%1.3f,%1.3f) {%s};" % (vertex_color, i, self.nodeprefix, v.position[0], v.position[1], vertex_string), file= output)
+            print(prefix + "\t\t\\node [style=%s] (%d%s) at (%1.3f,%1.3f) {%s};" % (vertex_color, i, self.nodeprefix, v.position[0], v.position[1], vertex_string), file= output)
             
         
     def edge_middle_string(self, v, u, s=None):
         middle_string = "to"
         return middle_string
         
-    def edges(self, output, translated= None):
+    def edges(self, output, prefix= "", translated= None):
         for i in self.vertices:
             v = self.getVertex(i)
             for u in v.connectedTo:
-                print("\t\t\draw [style=%s] (%d%s) %s (%d%s);" % (self.edges_style, v.getId(), self.nodeprefix, self.edge_middle_string(v, u), u.getId(), self.nodeprefix), file= output)
+                print(prefix + "\t\t\draw [style=%s] (%d%s) %s (%d%s);" % (self.edges_style, v.getId(), self.nodeprefix, self.edge_middle_string(v, u), u.getId(), self.nodeprefix), file= output)
                 if translated != None:
-                    print("\t\t\draw [style=thiny, color=green!75!white] (%1.3f,%1.3f) %s (%1.3f,%1.3f);" % ( v.position[0] - translated[0], v.position[1] - translated[1], self.edge_middle_string(v, u), u.position[0] - translated[0], u.position[1] - translated[1]), file= output)
+                    print(prefix + "\t\t\draw [style=thiny, color=green!75!white] (%1.3f,%1.3f) %s (%1.3f,%1.3f);" % ( v.position[0] - translated[0], v.position[1] - translated[1], self.edge_middle_string(v, u), u.position[0] - translated[0], u.position[1] - translated[1]), file= output)
                 
         
         
         
-    def printLatex(self, output= None):
-        print("\\begin{tikzpicture}", file= output)
+    def printLatex(self, output= None, prefix= ""):
+        print(prefix + "\\begin{tikzpicture}", file= output)
         
-        print("\t\\begin{pgfonlayer}{nodelayer}", file= output)
-        self.nodes(output)
-        print("\t\end{pgfonlayer}", file= output)
+        print(prefix + "\t\\begin{pgfonlayer}{nodelayer}", file= output)
+        self.nodes(output, prefix)
+        print(prefix + "\t\end{pgfonlayer}", file= output)
         
-        print("\t\\begin{pgfonlayer}{edgelayer}", file= output)
-        self.edges(output)
-        print("\t\end{pgfonlayer}", file= output)
+        print(prefix + "\t\\begin{pgfonlayer}{edgelayer}", file= output)
+        self.edges(output, prefix)
+        print(prefix + "\t\end{pgfonlayer}", file= output)
         
-        print("\end{tikzpicture}", file= output)
+        print(prefix + "\end{tikzpicture}", file= output)
                 
 class LatexVertex:
     """

@@ -22,6 +22,7 @@ class LatexElement:
         self.title = "Title"
         self.pretext = "This is the pre-text"
         self.element = None
+        self.caption = "This is the caption"
         self.posttext = "This is the post-text"
         
         
@@ -33,15 +34,25 @@ class LatexElement:
             print(outfile)
         
         if (self.style != "frame"):
-            print("\\" + self.style + "{" + self.title + "}", file= outfile)
+            print("\t\\" + self.style + "{" + self.title + "}", file= outfile)
         else:
-            print("\\begin{frame}{" + self.title + "}", file= outfile)
+            print("\t\\begin{frame}{" + self.title + "}", file= outfile)
         print(self.pretext, file= outfile)
         
         if (self.element == None):
             print("element", file= outfile)
         else:
-            self.element.printLatex(outfile)
+            print("\t\\begin{figure}[H]", file= outfile)
+            print("\t\t\\begin{center}", file= outfile)
+            print("\t\t\t\\resizebox{0.95\\textwidth}{!}{", file= outfile)
+            
+            self.element.printLatex(outfile, "\t\t\t\t")
+            
+            print("\t\t\t}", file= outfile)
+            print("\t\t\\end{center}", file= outfile)
+            print("\t\t\\caption{" + self.caption + "}", file= outfile)
+            print("\t\t\\label{fig:lat1a}", file= outfile)
+            print("\t\\end{figure}", file= outfile)
         
         print(self.posttext, file= outfile)
         if (self.style == "frame"):
@@ -71,22 +82,23 @@ class LatexFile:
     """
 \\title{GE460: Applicazioni alla crittografia: costruzioni di Hash tramite expander graphs}
 \\author{Lorenzo Pichetti}
-\date{2021}
+\\date{2021}
 
-\documentclass{article}
+\\documentclass{article}
     """, file= self.output)
     
         print_preambles(self.output)
         print(
     """
 \\usepackage[graphics,tightpage,active]{preview}
-\PreviewEnvironment{tikzpicture}
-\\newlength{\imagewidth}
-\\newlength{\imagescale}
+\\PreviewEnvironment{tikzpicture}
+\\newlength{\\imagewidth}
+\\newlength{\\imagescale}
+\\usepackage{float}
 
 \\begin{document}
 
-\maketitle
+\\maketitle
     
     """, file= self.output)
         
@@ -95,9 +107,10 @@ class LatexFile:
     """
 \\title{GE460: Applicazioni alla crittografia: costruzioni di Hash tramite expander graphs}
 \\author{Lorenzo Pichetti}
-\date{2021}
+\\date{2021}
 
-\documentclass{article}
+\\documentclass{article}
+\\usepackage{float}
     """, file= self.output)
     
         print_preambles(self.output)
@@ -105,21 +118,22 @@ class LatexFile:
     """
 \\begin{document}
 
-\maketitle
+\\maketitle
     
     """, file= self.output)
         
     def define_document_beamer(self):
         print(
     """
-\documentclass{beamer}
+\\documentclass{beamer}
 \\usetheme{Berkeley}
 \\usecolortheme{spruce}
 %Information to be included in the title page:
 \\title{Lattice Cryptography, SVP, and Sieving Algorithms}
 \\author{Lorenzo Pichetti}
-\institute{Universita\` degli studi di Roma Tre}
-\date{2021}
+\\institute{Universita\\` degli studi di Roma Tre}
+\\date{2021}
+\\usepackage{float}
     """, file= self.output)
     
         print_preambles(self.output)
