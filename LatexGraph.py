@@ -245,17 +245,33 @@ class LatexVertex:
         """ It returns the vertex id """
         return self.id
     
-def testGraph():
+def testGraph(ch= 1):
     G = LatexGraph()
-    G.addVertex(0, [0,0])
-    G.getVertex(0).name = 0
-    G.addVertex(1, [2,0])
-    G.getVertex(1).name = 1
-    G.addVertex(2, [1,1])
-    G.getVertex(2).name = 2
-    G.addEdge(0,1)
-    G.addEdge(1,2)
-    G.addEdge(1,0)
-    G.set_node_style("white")
-    G.set_edges_style("bluearrow")
+    if (ch == 1):
+        G.addVertex(0, [0,0])
+        G.getVertex(0).name = 0
+        G.addVertex(1, [2,0])
+        G.getVertex(1).name = 1
+        G.addVertex(2, [1,1])
+        G.getVertex(2).name = 2
+        G.addEdge(0,1)
+        G.addEdge(1,2)
+        G.addEdge(1,0)
+        G.set_node_style("white")
+        G.set_edges_style("bluearrow")
+    if (ch == 2):
+        G.addVertex(0, [0,0])
+        G.getVertex(0).name = "Topolino"
+        G.addVertex(1, [2,0])
+        G.getVertex(1).name = "Pippo"
+        G.addVertex(2, [1,4])
+        G.getVertex(2).name = "Pluto"
+        G.addVertex(3, [-2,1])
+        G.getVertex(3).name = "Paperino"
+        G.addEdge(0,1)
+        G.addEdge(0,2)
+        G.addEdge(1,2)
+        G.addEdge(2,3)
+        G.set_node_style("red")
+        G.set_edges_style("thiny")
     return(G)

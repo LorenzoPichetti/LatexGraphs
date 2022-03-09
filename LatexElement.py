@@ -57,7 +57,7 @@ def readLatexFigure(GraphOrLatex):
     E.element = GraphOrLatex
         
     print("Choose the style:\n\t(1) section (default);\n\t(2) subsection;\n\t(3) subsubsection;\n\t(4) frame (for beamer document).")
-    c: int = input()
+    c = int(input())
     f = 0
     if (c==2):
         E.style = "subsection"
@@ -158,7 +158,6 @@ class LatexFile:
 \\documentclass{beamer}
 \\usetheme{Berkeley}
 \\usecolortheme{spruce}
-%Information to be included in the title page:
 \\title{%s}
 \\author{Lorenzo Pichetti}
 \\institute{Universita\\` degli studi di Roma Tre}
@@ -181,7 +180,7 @@ class LatexFile:
             self.start_article()
             f=1
         if (self.style == "beamer"):
-            self.start_article()
+            self.start_beamer()
             f=1
         if (self.style == "picture"):
             self.start_picture()
@@ -213,14 +212,14 @@ def readLatexFile():
     name = name + ".tex"
     
     print("Choose the document's class:\n\t(1) article (default);\n\t(2) beamer;\n\t(3) picture.")
-    c: int = input()
+    c = int(input())
     f = 0
     if (c==2):
         style = "beamer"
-        f=1
+        f = 1
     if (c==3):
         style = "picture"
-        f=1
+        f = 1
     if (f==0):
         style = "article"
     
