@@ -8,7 +8,7 @@ default:
 	echo no default
 
 test:
-	$(PY) testElement.py
+	$(PY) testFigure.py
 	
 pdf:
 	pdflatex $(FNAME).tex

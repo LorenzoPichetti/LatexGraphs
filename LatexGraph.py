@@ -72,15 +72,15 @@ class LatexGraph:
             It saves the number of vertices which compose G
             
         > node_style  : str
-            It represents the node's style to use for printing the vertices of G. The node_style must be one between 'rn',
-                'gn', 'yn', 'blstyle', 'wstyle', 'little', 'none', and the other one defined in the preambles.
+            It represents the node's style to use for printing the vertices of G. The node_style must be one between 'red',
+                'green', 'yellow', 'black', 'white', 'little', 'none', and the other one defined in the preambles.
                 
         > edges_style  : str
             It represents the edge's style to use for printing the edges of G. The edges_style must be one between 'simple',
                 'arrow', 'tick', 'redstyle', 'bluestyle', 'greenstyle', 'redarrow', and the other one defined in the preambles.
             
         > nodeprefix : str
-            This string can be usefull for generate overlapped graphs without generate not real edges
+            This string can be usefull for generate overlapped graphs without generate not existing edges
         
         -----------
     """
@@ -93,14 +93,19 @@ class LatexGraph:
         self.nodeprefix = ""
 
     # ---------------- Graph function ---------------------        
-    def addVertex(self,key,position,name=None,color=None):
-        """ It adds a vertex to the graph """
+    def addVertex(self, key, position, name=None, color=None):
+        """
+        This command adds a vertex to the graph. The 'key' and 'position' arguments are mandatory and are used as name
+        for refering the vertex and his position (this last one must be a couple of numbers as [-1,2]).
+        The arguments 'name' and 'color' are optional; the first one could contain a string which will be printed inside
+        the node, the second a color for the vertex (if it must be different from the default one definef in 'node_style').
+        """
         self.numVertices = self.numVertices + 1
-        newVertex = LatexVertex(key,position,name,color)
+        newVertex = LatexVertex(key, position, name, color)
         self.vertices[key] = newVertex
         return newVertex
     
-    def getVertex(self,n):
+    def getVertex(self, n):
         """ It returns the vertex with id n """
         if n in self.vertices:
             return self.vertices[n]
@@ -111,11 +116,14 @@ class LatexGraph:
         return n in self.vertices
     
     def addEdge(self,f,t,cost=0):
-        """ It adds an edge to the graph """
+        """ 
+        It adds to the graph an edge from the vertex with id f to the vertex with id t.
+        If the optional parameter 'cost' is different from zero, it will represent the edge's weight.
+        """
         self.vertices[f].addNeighbor(self.vertices[t],cost)
     
     def getVertices(self):
-        """ It returns the vertices of G """
+        """ It returns the list containing all the vertices of G """
         return list(self.vertices.keys())
         
     def __iter__(self):
@@ -135,12 +143,19 @@ class LatexGraph:
     # The following functions are used to print the LaTex/Tikz code
     
     def nodes(self, output, prefix= ""):
+        """
+        This function prints the tikz lines relative to all the graph's vertices.
+        If a vertex has a 'None' value in the field 'color', it will be printed with color setted in the LatexGraph's 
+        'node_style', and, if the field 'name' is None, the node will be printed without text inside.
+        """
         for i in list(self.vertices.keys()):
             v = self.getVertex(i)
+            
             if v.color==None:
                 vertex_color = self.node_style
             else:
                 vertex_color = v.color
+            
             if v.name==None:
                 vertex_string = ""
             else:
@@ -158,6 +173,9 @@ class LatexGraph:
         return middle_string
         
     def edges(self, output, prefix= "", translated= None):
+        """
+        This function prints the tikz lines relative to all the graph's edges.
+        """
         for i in self.vertices:
             v = self.getVertex(i)
             for u in v.connectedTo:
@@ -169,6 +187,9 @@ class LatexGraph:
         
         
     def printTikz(self, output= None, prefix= ""):
+        """
+        This function prints the entire tikz code by using the functions 'nodes' and 'edges'.
+        """
         print(prefix + "\\begin{tikzpicture}", file= output)
         
         print(prefix + "\t\\begin{pgfonlayer}{nodelayer}", file= output)
@@ -180,7 +201,10 @@ class LatexGraph:
         print(prefix + "\t\end{pgfonlayer}", file= output)
         
         print(prefix + "\end{tikzpicture}", file= output)
-                
+            
+            
+            
+            
 class LatexVertex:
     """
     A LatexVertex is composed by 5 parameters:
@@ -196,15 +220,14 @@ class LatexVertex:
         > position : [int, int]
             It contains an array with the 2D position of the LatexVertex
             
-        > name  : ?
-        > color : ?
-            These two parameters are two generic filds for storing some needed information about the LatexVertex
-            es. if we have a vertex v with a particular color (red) and a particular hight value (3.7m) we can set
-                these two fields as the string 'red' and the double 3.7
+        > name  : str
+            It contains the string that will be printed inside the node (usually the vertex's name).
+        > color : string (one of {'red', 'green', 'little', ... }
+            These parameters contains the particular style for the node (if it is different from the default one).
         
         -----------
     """
-    def __init__(self,num,position,name,color):
+    def __init__(self,num, position, name, color):
         self.id = num
         self.connectedTo = {}
         self.position = position
@@ -245,33 +268,45 @@ class LatexVertex:
         """ It returns the vertex id """
         return self.id
     
+    
+    
+# These function returns one of the three predefined graphs (used for the tests and the testing functions)
 def testGraph(ch= 1):
     G = LatexGraph()
     if (ch == 1):
         G.addVertex(0, [0,0])
-        G.getVertex(0).name = 0
         G.addVertex(1, [2,0])
-        G.getVertex(1).name = 1
         G.addVertex(2, [1,1])
-        G.getVertex(2).name = 2
         G.addEdge(0,1)
         G.addEdge(1,2)
         G.addEdge(1,0)
         G.set_node_style("white")
         G.set_edges_style("bluearrow")
     if (ch == 2):
-        G.addVertex(0, [0,0])
-        G.getVertex(0).name = "Topolino"
-        G.addVertex(1, [2,0])
-        G.getVertex(1).name = "Pippo"
-        G.addVertex(2, [1,4])
-        G.getVertex(2).name = "Pluto"
-        G.addVertex(3, [-2,1])
-        G.getVertex(3).name = "Paperino"
+        G.addVertex(0, [0,0], "Topolino")
+        G.addVertex(1, [2,0], "Pippo")
+        G.addVertex(2, [1,4], "Pluto")
+        G.addVertex(3, [-2,1], "Paperino")
         G.addEdge(0,1)
         G.addEdge(0,2)
         G.addEdge(1,2)
         G.addEdge(2,3)
         G.set_node_style("red")
         G.set_edges_style("thiny")
+    if (ch == 3):
+        G.addVertex(0, [0,0], 0, "yellow")
+        G.addVertex(1, [-1,-1])
+        G.addVertex(2, [-1,1])
+        G.addVertex(3, [1,1])
+        G.addVertex(4, [1,-1])
+        G.addEdge(1,2)
+        G.addEdge(2,3)
+        G.addEdge(3,4)
+        G.addEdge(4,1)
+        G.addEdge(1,0)
+        G.addEdge(2,0)
+        G.addEdge(3,0)
+        G.addEdge(4,0)
+        G.set_node_style("little")
+        G.set_edges_style("greenarrow")
     return(G)
