@@ -15,7 +15,7 @@
 
 from LatexGraph import *
 from LatexLattice import *
-from LatexElement import *
+from LatexFigure import *
 
 F = LatexFile("test.tex")
 F.open_file()

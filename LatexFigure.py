@@ -192,8 +192,13 @@ class LatexFile:
     def end_document(self):
         print("\end{document}", file= self.output)
 
-    def insertFigure(self, fig):
+    def insertFigure(self, fig: LatexFigure):
         self.figures.append(fig)
+    
+    def insertFigure(self, fig: LatexGraph):
+        E = LatexFigure()
+        E.element = fig
+        self.figures.append(E)
     
     def printLatexFile(self):
         self.open_file()
@@ -224,5 +229,10 @@ def readLatexFile():
         style = "article"
     
     F = LatexFile(name, style)
+    
+    print("Write the document's title:")
+    title = input()
+    F.title = title
+    
     print("Insert now the figures with '<output's name>.insertFigure(<LatexFigure>)'")
     return(F)
