@@ -247,7 +247,7 @@ class LatexFile:
             fig.posttext = None
         self.figures.append(fig)
     
-    def insertFigure(self, fig: LatexGraph):
+    def insertGraph(self, fig: LatexGraph):
         """ This function appends a new LatexGraph to the LatexFile by generating a default LatexFigure. """
         E = LatexFigure()
         E.element = fig
