@@ -89,7 +89,6 @@ class LatexGraph:
         self.edges_style = "none"
         self.clip_params = None
         self.grid_params = None
-        self.fix = False
 
     # ---------------- Graph function ---------------------        
     def addVertex(self, key, position, name=None, color=None):
@@ -166,12 +165,14 @@ class LatexGraph:
         
         if (self.node_style != other.node_style):
             for v in other.vertices.values():
-                v.color = other.node_style
+                if (v.color == None):
+                    v.color = other.node_style
         
         if (self.edges_style != other.edges_style):
             for v in other.vertices.values():
                 for u in v.connectedTo:
-                    v.connectedTo[u][1] = other.edges_style
+                    if (v.connectedTo[u][1] == None):
+                        v.connectedTo[u][1] = other.edges_style
         
         O = LatexGraph()
         O.numVertices = self.numVertices + other.numVertices
