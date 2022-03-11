@@ -102,15 +102,12 @@ class LatexGraph:
         """
         self.numVertices = self.numVertices + 1
         newVertex = LatexVertex(key, position, name, color)
-        self.vertices[key] = newVertex
+        self.vertices[str(key)] = newVertex
         return newVertex
     
     def getVertex(self, n):
         """ It returns the vertex with id n """
-        if n in self.vertices:
-            return self.vertices[n]
-        else:
-            return None
+        return self.vertices[str(n)]
 
     def __contains__(self,n):
         return n in self.vertices
@@ -122,7 +119,7 @@ class LatexGraph:
         if c is different from 'None', it represents the edge's particular color (if it is 'None' then the edge will
         be printed with the default value stored in 'self.edges_style').
         """
-        self.vertices[f].addNeighbor(self.vertices[t], w, c)
+        self.vertices[str(f)].addNeighbor(self.vertices[str(t)], w, c)
     
     def getVertices(self):
         """ It returns the list containing all the vertices of G """
@@ -295,7 +292,7 @@ class LatexVertex:
         
         -----------
     """
-    def __init__(self,num, position, name, color):
+    def __init__(self, num, position, name, color):
         self.id = str(num)
         self.connectedTo = {}
         self.position = position

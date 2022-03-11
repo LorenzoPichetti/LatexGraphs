@@ -24,7 +24,7 @@ class LatexLattice:
         self.graph = LatexGraph()
         self.graph.set_node_style("little")
         self.graph.set_edges_style("thiny")
-        self.graph.addVertex(0, [0,0])
+        self.graph.addVertex('0', [0,0])
         self.minx = 1
         self.miny = 1
         self.overset = 0.25
@@ -57,13 +57,14 @@ class LatexLattice:
         self.y = [interval[0] - self.overset, interval[1] + self.overset]
         
     def set_axes(self):
-        self.axes.addVertex(-100000, [self.x[0], 0])
-        self.axes.addVertex(-200000, [self.x[1], 0])
-        self.axes.addVertex(-300000, [0, self.y[0]])
-        self.axes.addVertex(-400000, [0, self.y[1]])
-        self.axes.addEdge(-100000,-200000)
-        self.axes.addEdge(-300000,-400000)
+        self.axes.addVertex('-X', [self.x[0], 0])
+        self.axes.addVertex('+X', [self.x[1], 0])
+        self.axes.addVertex('-Y', [0, self.y[0]])
+        self.axes.addVertex('+Y', [0, self.y[1]])
+        self.axes.addEdge('-X','+X')
+        self.axes.addEdge('-Y','+Y')
         self.axes.set_edges_style("axe")
+        self.axes.set_node_style("none")
         
     def set_base(self):
         self.base.addVertex(0, [0,0])
@@ -72,6 +73,7 @@ class LatexLattice:
         self.base.addEdge(0, 1)
         self.base.addEdge(0, 3)
         self.base.set_edges_style("bluearrow")
+        self.axes.set_node_style("little")
         
     def set_parallelepid(self):
         self.parallelepid_on = True
@@ -94,7 +96,7 @@ class LatexLattice:
         return(1)
     
     def construct_lattice(self):
-        l = [0]
+        l = ['0']
         i = 1
         while len(l) != 0:
             v = self.graph.getVertex(l.pop())
@@ -108,11 +110,11 @@ class LatexLattice:
                 
                 for t in temp:
                     if t in position_list:
-                        u = self.graph.vertices[position_list.index(t)]
+                        u = self.graph.vertices[str(position_list.index(t))]
                         self.graph.addEdge(v.id, u.id)
                     else:
-                        self.graph.addVertex(i, t)
-                        self.graph.addEdge(v.id, i)
+                        self.graph.addVertex(str(i), t)
+                        self.graph.addEdge(v.id, str(i))
                         l.append(i)
                         i = i+1
                         
@@ -170,3 +172,6 @@ class LatexLattice:
         print(prefix + "\t\end{pgfonlayer}", file= output)
         
         print(prefix + "\end{tikzpicture}", file= output)
+        
+    def generatesLatexGraph(self):
+        return (self.graph + self.base + self.axes)
