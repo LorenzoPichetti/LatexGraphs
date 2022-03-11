@@ -115,12 +115,14 @@ class LatexGraph:
     def __contains__(self,n):
         return n in self.vertices
     
-    def addEdge(self,f,t,cost=0):
+    def addEdge(self, f, t, w=0, c=None):
         """ 
         It adds to the graph an edge from the vertex with id f to the vertex with id t.
-        If the optional parameter 'cost' is different from zero, it will represent the edge's weight.
+        If the optional parameter 'cost' is different from zero, it will represent the edge's weight; in the same way,
+        if c is different from 'None', it represents the edge's particular color (if it is 'None' then the edge will
+        be printed with the default value stored in 'self.edges_style').
         """
-        self.vertices[f].addNeighbor(self.vertices[t],cost)
+        self.vertices[f].addNeighbor(self.vertices[t], w, c)
     
     def getVertices(self):
         """ It returns the list containing all the vertices of G """
@@ -129,6 +131,11 @@ class LatexGraph:
     def __iter__(self):
         return iter(self.vertices.values())
     
+    def changeId(self, old_name, new_name):
+        """ This function chang the id of a vertex; it is useful for overlapping graphs """
+        self.getVertex(old_name).id = new_name
+        self.vertices[new_name] = self.vertices.pop(old_name)
+        
     # --------------------------- Printing function -----------------------------------
     # The following functions are used to prepare the parameters for the Tikz functions
     
@@ -165,23 +172,27 @@ class LatexGraph:
                     vertex_string = "\color{white} %s" % v.name
             
 
-            print(prefix + "\t\t\\node [style=%s] (%d%s) at (%1.3f,%1.3f) {%s};" % (vertex_color, i, self.nodeprefix, v.position[0], v.position[1], vertex_string), file= output)
+            print(prefix + "\t\t\\node [style=%s] (%s%s) at (%1.3f,%1.3f) {%s};" % (vertex_color, i, self.nodeprefix, v.position[0], v.position[1], vertex_string), file= output)
             
         
     def edge_middle_string(self, v, u, s=None):
         middle_string = "to"
         return middle_string
         
-    def edges(self, output, prefix= "", translated= None):
+    def edges(self, output, prefix= ""):
         """
         This function prints the tikz lines relative to all the graph's edges.
         """
         for i in self.vertices:
             v = self.getVertex(i)
             for u in v.connectedTo:
-                print(prefix + "\t\t\draw [style=%s] (%d%s) %s (%d%s);" % (self.edges_style, v.getId(), self.nodeprefix, self.edge_middle_string(v, u), u.getId(), self.nodeprefix), file= output)
-                if translated != None:
-                    print(prefix + "\t\t\draw [style=thiny, color=green!75!white] (%1.3f,%1.3f) %s (%1.3f,%1.3f);" % ( v.position[0] - translated[0], v.position[1] - translated[1], self.edge_middle_string(v, u), u.position[0] - translated[0], u.position[1] - translated[1]), file= output)
+                
+                if (v.getColor(u) == None):
+                    style = self.edges_style
+                else:
+                    style = v.connectedTo[u][1]
+                
+                print(prefix + "\t\t\draw [style=%s] (%s%s) %s (%s%s);" % (style, v.getId(), self.nodeprefix, self.edge_middle_string(v, u), u.getId(), self.nodeprefix), file= output)
                 
         
         
@@ -209,13 +220,15 @@ class LatexVertex:
     """
     A LatexVertex is composed by 5 parameters:
         -----------
-        > id : int
-            It contains a number to univocally identify this particular vertex.
+        > id : str
+            It contains a string to univocally identify this particular vertex.
         
-        > connectedTo : dictionary ({key1: value1, key2: valu2, ...})
-            Every element is composed by oneother LatexVertex as kay and a weight (of arbitrary type) as value.
-            es. if the element v.connectedTo = {w: 10, z: 3} then the vertex v is connected to the vertex w with
-                weight 10 and to the vertex z with weight 3.
+        > connectedTo : dictionary ({key1: [weight1, color1], key2: [weight2, color2], ...})
+            Every element is composed by oneother LatexVertex as kay and a couple of weight (of arbitrary type) and 
+            color (str or None) as value.
+            es. if the element v.connectedTo = {w: [10, "bluearrow"], z: [3, "greenstyle"]} then the vertex v is
+            connected to the vertex w with weight 10 and color "bluearrow" and to the vertex z with weight 3 and 
+            color "greenstyle".
                 
         > position : [int, int]
             It contains an array with the 2D position of the LatexVertex
@@ -228,7 +241,7 @@ class LatexVertex:
         -----------
     """
     def __init__(self,num, position, name, color):
-        self.id = num
+        self.id = str(num)
         self.connectedTo = {}
         self.position = position
         self.name = name
@@ -237,13 +250,13 @@ class LatexVertex:
     # def __lt__(self,o):
     #     return self.id < o.id
     
-    def addNeighbor(self,nbr,weight=0):
+    def addNeighbor(self, nbr, w=0, c=None):
         """ 
-        By using v.addNeighbor(w, 10) we add the edge from v to w with weight 10: 
+        By using v.addNeighbor(w, 10) we add the edge from v to w with weight 10 and default color: 
             If the edge already exist, we are updating its weight with 10. 
             If the weight is not given, it is set as 0.
         """
-        self.connectedTo[nbr] = weight
+        self.connectedTo[nbr] = [w, c]
         
     def setPosition(self, position):
         """ This method update the vertex position """
@@ -259,7 +272,11 @@ class LatexVertex:
         
     def getWeight(self,nbr):
         """ It returns the weight of the edge from v to nbr """
-        return self.connectedTo[nbr]
+        return self.connectedTo[nbr][0]
+    
+    def getColor(self,nbr):
+        """ It returns the weight of the edge from v to nbr """
+        return self.connectedTo[nbr][1]
                 
     def __str__(self):
         return str(self.id) + ":position " + str(self.position) + "]\n"
