@@ -17,6 +17,13 @@ from LatexGraph import *
 from LatexLattice import *
 
 class LatexFigure:
+    """
+    A LatexFigure is a class to embead the Tikz code genereted by 'printTikz(...)' in a latex figure element.
+    Other element like the title to insert before the figure, its caption, and some text above and under it are stored
+    in the fields 'title', 'pretext', 'posttext', and 'caption'.
+    In the field 'element' is stored the LatexGraph (or LatexLattice), instead, the field 'style' can take value as
+    'section', 'subsection', 'subsubsection', 'chapter', 'frame' ... to chose the style of the figure frame.
+    """
     def __init__ (self):
         self.style = "section"
         self.title = "Title"
@@ -25,13 +32,15 @@ class LatexFigure:
         self.caption = "This is the caption"
         self.posttext = "This is the post-text"
         
-        
+    """ This function prints the latex code relative to the LatexFigure """
     def printLatexFigure(self, outfile= None, prefix= "\t"):
         if (self.style != "frame"):
             print(prefix + "\\" + self.style + "{" + self.title + "}", file= outfile)
         else:
             print(prefix + "\\begin{frame}{" + self.title + "}", file= outfile)
-        print(prefix + self.pretext, file= outfile)
+        
+        if (self.pretext != None):
+            print(prefix + self.pretext, file= outfile)
         
         if (self.element == None):
             print("element", file= outfile)
@@ -44,14 +53,22 @@ class LatexFigure:
             
             print(prefix + "\t\t}", file= outfile)
             print(prefix + "\t\\end{center}", file= outfile)
-            print(prefix + "\t\\caption{" + self.caption + "}", file= outfile)
+            if (self.caption != None):
+                print(prefix + "\t\\caption{" + self.caption + "}", file= outfile)
             print(prefix + "\t\\label{fig:lat1a}", file= outfile)
             print(prefix + "\\end{figure}", file= outfile)
         
-        print(prefix + self.posttext, file= outfile)
+        if (self.posttext != None):
+            print(prefix + self.posttext, file= outfile)
+            
         if (self.style == "frame"):
             print(prefix + "\\end{frame}", file= outfile)
-            
+
+
+"""
+The function "readLatexFigure" takes as input a LatexGraph or a LatexLattice and returns a LatexFigure. It is used for
+inserting the value at run-time.
+"""
 def readLatexFigure(GraphOrLatex):
     E = LatexFigure()
     E.element = GraphOrLatex
@@ -86,6 +103,24 @@ def readLatexFigure(GraphOrLatex):
     return(E)
         
 class LatexFile:
+    """
+    A LatexFile is a structure used to generate the entire .tex file generated as output.
+    It is composed by 4 elements:
+    
+        output: str (--> io file)
+            this field contains the name which will be the name of the outputfile. For the setting part it is a string,
+            but by using the method 'open_file' it will be replaced by a io file with the same name.
+            
+        style: str (one of {"article", "beamer", "picture"})
+            it represent the documentclass of the output latex file.
+            
+        title: str
+            this is a string which will be printed as the title of the document.
+            
+        figures: array of LatexFigure
+            This array is initialized as a void array, and then (by using 'insertFigure') will contains all the figure
+            which will be printed in the output file '.tex'.
+    """
     def __init__ (self, fp=None, style="article"):
         self.output = fp
         self.style = style
@@ -93,6 +128,7 @@ class LatexFile:
         self.figures = []
     
     def open_file(self):
+        """ In this function we open the file in which we print all the latex code """
         if (self.output != None):
             fp = open(self.output, "w")
             print("", file= fp)
@@ -101,13 +137,16 @@ class LatexFile:
             self.output = fp
         
     def close_file(self):
+        """ In this function we close the output file """
         if (self.output != None):
             self.output.close()
             
     def outputfile(self):
+        """ This function returns the output file """
         return(self.output)
     
     def start_picture(self):
+        """ Read the start_document's description """
         print(
     """
 \\title{%s}
@@ -133,6 +172,7 @@ class LatexFile:
     """, file= self.output)
         
     def start_article(self):
+        """ Read the start_document's description """
         print(
     """
 \\title{%s}
@@ -153,6 +193,7 @@ class LatexFile:
     """, file= self.output)
         
     def start_beamer(self):
+        """ Read the start_document's description """
         print(
     """
 \\documentclass{beamer}
@@ -175,6 +216,11 @@ class LatexFile:
     """, file= self.output)
         
     def start_document(self):
+        """
+        start_document prints in the output file the preambles needed by the Tex document and start it. The particulare
+        commands are defined by the particular file's  documentclass by using one of 'start_article', 'start_beamer', 
+        and 'start_picture'.
+        """
         f = 0
         if (self.style == "article"):
             self.start_article()
@@ -190,28 +236,45 @@ class LatexFile:
             
         
     def end_document(self):
+        """ It ends the latex document """
         print("\end{document}", file= self.output)
 
     def insertFigure(self, fig: LatexFigure):
+        """ This function appends a new LatexFigure to the LatexFile. """
+        if (self.style == "beamer"):
+            fig.style = "frame"
+            fig.pretext = None
+            fig.posttext = None
         self.figures.append(fig)
     
     def insertFigure(self, fig: LatexGraph):
+        """ This function appends a new LatexGraph to the LatexFile by generating a default LatexFigure. """
         E = LatexFigure()
         E.element = fig
         self.figures.append(E)
     
     def printLatexFile(self):
+        """
+        In 'printLatexFile' we puts together all the prevous defined functions; we open the file, print the code, 
+        and close the file.
+        """
         self.open_file()
         self.start_document()
         i = 0
         while (i < len(self.figures)):
-            self.figures[i].printLatexFigure(self.output)
+            if (self.style != "picture"):
+                self.figures[i].printLatexFigure(self.output)
+            else:
+                self.figures[i].element.printTikz(outfile, "\t")
             i = i +1
         self.end_document()
         self.close_file()
         
         
 def readLatexFile():
+    """
+    This function is used to insert at run-time the LatexFile; it takes void as imput and returns a LatexFile.
+    """
     print("Write the file's name (without the extension):")
     name = input()
     name = name + ".tex"
