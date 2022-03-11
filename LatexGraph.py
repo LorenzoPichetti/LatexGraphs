@@ -131,10 +131,65 @@ class LatexGraph:
     def __iter__(self):
         return iter(self.vertices.values())
     
+    # --------------------------- Overlapping operator -----------------------------------
+    # These functions are used for overlapping two LatexGraph or transate/enlarge them
+    
+    def translate (self, translate_vector):
+        """ This function translates all the vertices' position by the translate_vector """
+        for v in list(self.vertices.values()):
+            v.position[0] = v.position[0] + translate_vector[0]
+            v.position[1] = v.position[1] + translate_vector[1]
+            
+    def scale (self, scale_factor):
+        """ This function multiply all the vertices' position by the scale_factor """
+        for v in list(self.vertices.values()):
+            v.position[0] = v.position[0] * scale_factor
+            v.position[1] = v.position[1] * scale_factor
+        
+    
     def changeId(self, old_name, new_name):
         """ This function chang the id of a vertex; it is useful for overlapping graphs """
         self.getVertex(old_name).id = new_name
         self.vertices[new_name] = self.vertices.pop(old_name)
+        
+    def __add__ (self, other):
+        """
+        This function generates a new LatexGraph by overlapping 'self' and 'other'.
+        Note that the two graphs can be modified:
+            1) If the two graphs have some vertices with the same id, then the one of 'other' are changed by appending
+                a 'X' character by using the 'changeId' function (otherwise we will print some unexistence edges between
+                the vertices of 'self' and the vertices of 'other').
+            2) If the default node style of 'self' is different by the one of 'other' then we update the color of all
+                the other's vertices. (in the same way we update the edges' style)
+        """
+        x = set(self.vertices.keys())
+        y = set(other.vertices.keys())
+        xy = x.intersection(y)
+        for k in xy:
+            other.changeId(k, str(k) + 'X')
+        
+        if (self.node_style != other.node_style):
+            for v in other.vertices.values():
+                v.color = other.node_style
+        
+        if (self.edges_style != other.edges_style):
+            for v in other.vertices.values():
+                for u in v.connectedTo:
+                    v.connectedTo[u][1] = other.edges_style
+        
+        O = LatexGraph()
+        O.numVertices = self.numVertices + other.numVertices
+        O.node_style = self.node_style
+        O.edges_style = self.edges_style
+        O.nodeprefix = self.nodeprefix
+        
+        for k in list(self.vertices.keys()):
+            O.vertices[k] = self.vertices[k]
+        for k in list(other.vertices.keys()):
+            O.vertices[k] = other.vertices[k]
+        
+        return (O)
+    
         
     # --------------------------- Printing function -----------------------------------
     # The following functions are used to prepare the parameters for the Tikz functions
