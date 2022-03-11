@@ -265,7 +265,7 @@ class LatexFile:
             if (self.style != "picture"):
                 self.figures[i].printLatexFigure(self.output)
             else:
-                self.figures[i].element.printTikz(outfile, "\t")
+                self.figures[i].element.printTikz(self.output, "\t")
             i = i +1
         self.end_document()
         self.close_file()
