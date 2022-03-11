@@ -174,4 +174,13 @@ class LatexLattice:
         print(prefix + "\end{tikzpicture}", file= output)
         
     def generatesLatexGraph(self):
-        return (self.graph + self.base + self.axes)
+        self.set_axes()
+        self.set_base()
+        self.construct_lattice()
+        
+        G = self.graph + self.base
+        G = G + self.axes
+        G.clip_params = [[self.x[0], self.y[0]], [self.x[1], self.y[1]]]
+        G.grid_params = [[self.x[0], self.y[0]], [self.x[1], self.y[1]]]
+        G.fix = True
+        return (G)

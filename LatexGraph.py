@@ -62,7 +62,7 @@ class LatexGraph:
     """
     Given a graph's G, a LatexGraph is a Python data-structur that contains all the G's necessary information to
     to prints it as a .tikz and .tex file.
-    It is composed by 5 parameters:
+    It is composed by 4 parameters:
         -----------
         > vertices : set
             Each vertex of G can be represented with a LatexVertex (see its documentation); this set contains
@@ -79,9 +79,6 @@ class LatexGraph:
             It represents the edge's style to use for printing the edges of G. The edges_style must be one between 'simple',
                 'arrow', 'tick', 'redstyle', 'bluestyle', 'greenstyle', 'redarrow', and the other one defined in the preambles.
             
-        > nodeprefix : str
-            This string can be usefull for generate overlapped graphs without generate not existing edges
-        
         -----------
     """
     
@@ -90,7 +87,9 @@ class LatexGraph:
         self.numVertices = 0
         self.node_style = "none"
         self.edges_style = "none"
-        self.nodeprefix = ""
+        self.clip_params = None
+        self.grid_params = None
+        self.fix = False
 
     # ---------------- Graph function ---------------------        
     def addVertex(self, key, position, name=None, color=None):
@@ -178,7 +177,6 @@ class LatexGraph:
         O.numVertices = self.numVertices + other.numVertices
         O.node_style = self.node_style
         O.edges_style = self.edges_style
-        O.nodeprefix = self.nodeprefix
         
         for k in list(self.vertices.keys()):
             O.vertices[k] = self.vertices[k]
@@ -224,7 +222,7 @@ class LatexGraph:
                     vertex_string = "\color{white} %s" % v.name
             
 
-            print(prefix + "\t\t\\node [style=%s] (%s%s) at (%1.3f,%1.3f) {%s};" % (vertex_color, i, self.nodeprefix, v.position[0], v.position[1], vertex_string), file= output)
+            print(prefix + "\t\t\\node [style=%s] (%s) at (%1.3f,%1.3f) {%s};" % (vertex_color, i, v.position[0], v.position[1], vertex_string), file= output)
             
         
     def edge_middle_string(self, v, u, s=None):
@@ -244,10 +242,7 @@ class LatexGraph:
                 else:
                     style = v.connectedTo[u][1]
                 
-                print(prefix + "\t\t\draw [style=%s] (%s%s) %s (%s%s);" % (style, v.getId(), self.nodeprefix, self.edge_middle_string(v, u), u.getId(), self.nodeprefix), file= output)
-                
-        
-        
+                print(prefix + "\t\t\draw [style=%s] (%s) %s (%s);" % (style, v.getId(), self.edge_middle_string(v, u), u.getId()), file= output)
         
     def printTikz(self, output= None, prefix= ""):
         """
@@ -256,10 +251,16 @@ class LatexGraph:
         print(prefix + "\\begin{tikzpicture}", file= output)
         
         print(prefix + "\t\\begin{pgfonlayer}{nodelayer}", file= output)
+        if (self.clip_params != None):
+            print(prefix + "\t\\clip (%f,%f) rectangle (%f,%f);" % (self.clip_params[0][0], self.clip_params[0][1], self.clip_params[1][0], self.clip_params[1][1]), file= output)
         self.nodes(output, prefix)
         print(prefix + "\t\end{pgfonlayer}", file= output)
         
         print(prefix + "\t\\begin{pgfonlayer}{edgelayer}", file= output)
+        if (self.clip_params != None):
+            print(prefix + "\t\\clip (%f,%f) rectangle (%f,%f);" % (self.clip_params[0][0], self.clip_params[0][1], self.clip_params[1][0], self.clip_params[1][1]), file= output)
+        if (self.grid_params != None):
+            print(prefix + "\t\\draw[thick,color=gray!25!white,step=1cm,dashed] (%f,%f) grid (%f,%f);" % (self.grid_params[0][0], self.grid_params[0][1], self.grid_params[1][0], self.grid_params[1][1]), file= output)
         self.edges(output, prefix)
         print(prefix + "\t\end{pgfonlayer}", file= output)
         
