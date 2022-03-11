@@ -57,10 +57,10 @@ class LatexLattice:
         self.y = [interval[0] - self.overset, interval[1] + self.overset]
         
     def set_axes(self):
-        self.axes.addVertex('-X', [self.x[0], 0])
-        self.axes.addVertex('+X', [self.x[1], 0])
-        self.axes.addVertex('-Y', [0, self.y[0]])
-        self.axes.addVertex('+Y', [0, self.y[1]])
+        self.axes.addVertex('-X', [self.x[0] - self.overset, 0])
+        self.axes.addVertex('+X', [self.x[1] + self.overset, 0])
+        self.axes.addVertex('-Y', [0, self.y[0] - self.overset])
+        self.axes.addVertex('+Y', [0, self.y[1] + self.overset])
         self.axes.addEdge('-X','+X')
         self.axes.addEdge('-Y','+Y')
         self.axes.set_edges_style("axe")
@@ -96,6 +96,9 @@ class LatexLattice:
         return(1)
     
     def construct_lattice(self):
+        self.set_axes()
+        self.set_base()
+        
         l = ['0']
         i = 1
         while len(l) != 0:
@@ -174,13 +177,9 @@ class LatexLattice:
         print(prefix + "\end{tikzpicture}", file= output)
         
     def generatesLatexGraph(self):
-        self.set_axes()
-        self.set_base()
-        self.construct_lattice()
-        
-        G = self.graph + self.base
-        G = G + self.axes
-        G.clip_params = [[self.x[0], self.y[0]], [self.x[1], self.y[1]]]
-        G.grid_params = [[self.x[0], self.y[0]], [self.x[1], self.y[1]]]
-        G.fix = True
+        G = self.graph + self.axes
+        if (self.base_on == True):
+            G = G + self.base
+        G.clip_params = [[self.x[0] - self.overset, self.y[0] - self.overset], [self.x[1] + self.overset, self.y[1] + self.overset]]
+        G.grid_params = [[self.x[0] - self.overset, self.y[0] - self.overset], [self.x[1] + self.overset, self.y[1] + self.overset]]
         return (G)
