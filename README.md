@@ -105,7 +105,7 @@ All the other LatexGraph's methods are documented inside 'LatexGraph.py'.
 ### The LatexFigure
 Every tikz code must be embedded insida a latex figure to be printed inside a latex document; the LatexFigure contains a graph, a title, a caption, and some optional text to print above and under the picture.
 
-[jpg Figure 2]
+<img src="/Documentation/TestFigure.png" alt="Alt text" title="TestFigure">
 
 The LatexFigure can be generated with
 ```python
