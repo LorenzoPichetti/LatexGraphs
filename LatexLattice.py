@@ -16,12 +16,32 @@
 from LatexGraph import *
 
 class LatexLattice:
+    """
+    A LatexLattice is a class to generate a LatexGraph that represents the 2D-lattice spanned by the vectors 'a' and 'b'.
+    
+        > a and b : [int, int]
+            The first and the second basis' vectors
+            
+            
+        > x and y : [int, int]
+            These two vectors represent the minimum and the maximum printed value for the x and the y axes.
+            
+        > graph, axes, and base : LatexGraph
+            These are LatexGraphs that will be combined in the final LatexGraph which will represent the entire lattice.
+            
+        > other parameters are used for other graphic options
+
+    """
     def __init__ (self):
         self.a = [2,1]
         self.b = [1,3]
         self.x = [-5,5]
         self.y = [-5,5]
+        
         self.graph = LatexGraph()
+        self.axes = LatexGraph()
+        self.base = LatexGraph()
+        
         self.graph.set_node_style("little")
         self.graph.set_edges_style("thiny")
         self.graph.addVertex('0', [0,0])
@@ -30,8 +50,6 @@ class LatexLattice:
         self.overset = 0.25
         self.grid = True
         
-        self.axes = LatexGraph()
-        self.base = LatexGraph()
         self.base_on = False
         self.parallelepid_on = False
         self.corners = []
@@ -73,7 +91,7 @@ class LatexLattice:
         self.base.addEdge(0, 1)
         self.base.addEdge(0, 3)
         self.base.set_edges_style("bluearrow")
-        self.axes.set_node_style("little")
+        self.base.set_node_style("little")
         
     def set_parallelepid(self):
         self.parallelepid_on = True
