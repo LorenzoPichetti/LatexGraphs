@@ -3,7 +3,7 @@ This repository contains a collection of python classes to generate a latex file
 
 The main classes are the LatexGraph and LatexVertex which could be summarised in the following way:
 
-[jpg Figure 1]
+<img src="/Documentation/TestGraph4.png" alt="Alt text" title="TestGraph4">
 
 <table>
 <thead>
