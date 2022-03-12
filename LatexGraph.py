@@ -78,6 +78,10 @@ class LatexGraph:
         > edges_style  : str
             It represents the edge's style to use for printing the edges of G. The edges_style must be one between 'simple',
                 'arrow', 'tick', 'redstyle', 'bluestyle', 'greenstyle', 'redarrow', and the other one defined in the preambles.
+                
+        > grid_params and clip_params : [[float, float], [float, float]]
+            These two couples of numbers are the bottom-left and upper-right corners for the grid and clip rectangles.
+            If the parameters are set as 'None' then no grid or clib will be applied.
             
         -----------
     """
