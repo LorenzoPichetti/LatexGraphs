@@ -297,5 +297,5 @@ def readLatexFile():
     title = input()
     F.title = title
     
-    print("Insert now the figures with '<output's name>.insertFigure(<LatexFigure>)'")
+    print("Insert now the figures or the graphs with '<output's name>.insertFigure(<LatexFigure>)' or '<output's name>.insertGraph(<LatexGraph>)'")
     return(F)
