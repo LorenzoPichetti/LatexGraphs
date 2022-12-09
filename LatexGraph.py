@@ -385,3 +385,19 @@ def testGraph(ch= 1):
         G.set_node_style("little")
         G.set_edges_style("greenarrow")
     return(G)
+
+# This function return a Petersen graph
+def petersen():
+    P = LatexGraph()
+    for i in range(0, 5):
+        alpha = (math.pi/2) + ((i/5)*2*math.pi)
+        P.addVertex(i, [ math.cos( alpha ), math.sin( alpha )] )
+        P.addVertex(i+5, [ 2* math.cos( alpha ), 2*math.sin( alpha )] )
+
+    for i in range(0, 5):
+        P.addEdge(i, i+5)
+        P.addEdge( i+5, ((i+1)%5)+5 )
+        P.addEdge( i, ((i+2)%5) )
+
+    return(P)
+
