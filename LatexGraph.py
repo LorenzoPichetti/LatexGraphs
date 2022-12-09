@@ -425,15 +425,21 @@ def testGraph(ch= 1):
 # This function return a Petersen graph
 def petersen():
     P = LatexGraph()
+    P.node_style = "littlew"
     for i in range(0, 5):
         alpha = (math.pi/2) + ((i/5)*2*math.pi)
-        P.addVertex(i, [ math.cos( alpha ), math.sin( alpha )] )
-        P.addVertex(i+5, [ 2* math.cos( alpha ), 2*math.sin( alpha )] )
+        P.addVertex(i, [ math.cos( alpha ), math.sin( alpha )], name= str(i) )
+        P.addVertex(i+5, [ 2* math.cos( alpha ), 2*math.sin( alpha )], name= str(i+5) )
 
     for i in range(0, 5):
         P.addEdge(i, i+5)
+        P.addEdge(i+5, i)
+
         P.addEdge( i+5, ((i+1)%5)+5 )
+        P.addEdge( ((i+1)%5)+5, i+5 )
+
         P.addEdge( i, ((i+2)%5) )
+        P.addEdge( ((i+2)%5), i )
 
     return(P)
 
