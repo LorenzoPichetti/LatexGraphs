@@ -119,6 +119,7 @@ class LatexGraph:
         self.edges_style = "none"
         self.clip_params = None
         self.grid_params = None
+        self.dasheds = []
         self.fills = []
 
     # ---------------- Graph function ---------------------        
@@ -161,6 +162,10 @@ class LatexGraph:
         """ This function add a color filled zone (only rectangles are now implemented) """
         self.fills.append([coordinates, color, opacity]);
     
+    def addDashed (self, coordinates, color):
+        """ This function add a color filled zone (only rectangles are now implemented) """
+        self.dasheds.append([coordinates, color]);
+
     # --------------------------- Overlapping operator -----------------------------------
     # These functions are used for overlapping two LatexGraph or transate/enlarge them
     
@@ -287,6 +292,12 @@ class LatexGraph:
         for f in self.fills:
             print(prefix + "\t\t\\fill [color=%s, opacity=%s] (%s) %s (%s);" % (f[1], f[2], f[0][0], "rectangle", f[0][1]), file= output)
 
+    def dasheds_fn(self, output, prefix= ""):
+        """
+        This function prints the tikz filled parts (only rectangles now).
+        """
+        for f in self.dasheds:
+            print(prefix + "\t\t\draw [color=%s, dashed] (%s) %s (%s);" % (f[1], f[0][0], "rectangle", f[0][1]), file= output)
         
     def printTikz(self, output= None, prefix= ""):
         """
@@ -305,8 +316,9 @@ class LatexGraph:
             print(prefix + "\t\\clip (%f,%f) rectangle (%f,%f);" % (self.clip_params[0][0], self.clip_params[0][1], self.clip_params[1][0], self.clip_params[1][1]), file= output)
         if (self.grid_params != None):
             print(prefix + "\t\\draw[thick,color=gray!25!white,step=1cm,dashed] (%f,%f) grid (%f,%f);" % (self.grid_params[0][0], self.grid_params[0][1], self.grid_params[1][0], self.grid_params[1][1]), file= output)
-        self.edges(output, prefix)
         self.fills_fn(output, prefix)
+        self.edges(output, prefix)
+        self.dasheds_fn(output, prefix)
         print(prefix + "\t\end{pgfonlayer}", file= output)
         
         print(prefix + "\end{tikzpicture}", file= output)
