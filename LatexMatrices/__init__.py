@@ -1,4 +1,4 @@
-from LatexFigure import *
+from LatexGraph import *
 
 
 class LatexMatrix(LatexGraph):
@@ -28,7 +28,7 @@ class LatexMatrix(LatexGraph):
                     else:
                         i+=1
 
-            return("%s,%s" % (i,j))
+            return("%s,%s" % (j,i))
 
     def addSubmatrix (self, bottomEntry, topEntry, color, opacity):
         if opacity > 0:
