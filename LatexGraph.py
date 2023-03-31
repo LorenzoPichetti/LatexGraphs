@@ -103,6 +103,11 @@ class LatexGraph:
         > grid_params and clip_params : [[float, float], [float, float]]
             These two couples of numbers are the bottom-left and upper-right corners for the grid and clip rectangles.
             If the parameters are set as 'None' then no grid or clib will be applied.
+
+        > fills: [[cordinate1, cordinate1], color, opacity]
+            This elements are the printed '\\fill' in the graph. Now only rectangles are supported. The first couple represent the
+            bottom left and the top right rectangle corners (could be both vertices' names that cordinates). 'color' is a string for
+            the filling color and must be 'opacity' a number in [0,1].
             
         -----------
     """
@@ -114,6 +119,7 @@ class LatexGraph:
         self.edges_style = "none"
         self.clip_params = None
         self.grid_params = None
+        self.fills = []
 
     # ---------------- Graph function ---------------------        
     def addVertex(self, key, position, name=None, color=None):
@@ -150,6 +156,10 @@ class LatexGraph:
         
     def __iter__(self):
         return iter(self.vertices.values())
+
+    def addFill (self, coordinates, color, opacity):
+        """ This function add a color filled zone (only rectangles are now implemented) """
+        self.fills.append([coordinates, color, opacity]);
     
     # --------------------------- Overlapping operator -----------------------------------
     # These functions are used for overlapping two LatexGraph or transate/enlarge them
@@ -269,6 +279,14 @@ class LatexGraph:
                     style = v.connectedTo[u][1]
                 
                 print(prefix + "\t\t\draw [style=%s] (%s) %s (%s);" % (style, v.getId(), self.edge_middle_string(v, u), u.getId()), file= output)
+
+    def fills_fn(self, output, prefix= ""):
+        """
+        This function prints the tikz filled parts (only rectangles now).
+        """
+        for f in self.fills:
+            print(prefix + "\t\t\\fill [color=%s, opacity=%s] (%s) %s (%s);" % (f[1], f[2], f[0][0], "rectangle", f[0][1]), file= output)
+
         
     def printTikz(self, output= None, prefix= ""):
         """
@@ -288,6 +306,7 @@ class LatexGraph:
         if (self.grid_params != None):
             print(prefix + "\t\\draw[thick,color=gray!25!white,step=1cm,dashed] (%f,%f) grid (%f,%f);" % (self.grid_params[0][0], self.grid_params[0][1], self.grid_params[1][0], self.grid_params[1][1]), file= output)
         self.edges(output, prefix)
+        self.fills_fn(output, prefix)
         print(prefix + "\t\end{pgfonlayer}", file= output)
         
         print(prefix + "\end{tikzpicture}", file= output)
