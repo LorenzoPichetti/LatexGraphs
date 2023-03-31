@@ -443,3 +443,7 @@ def petersen():
 
     return(P)
 
+
+import os
+def showTikzPreview():
+    os.system('./tikz_preview/script.sh')
