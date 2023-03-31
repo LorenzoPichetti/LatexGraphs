@@ -297,7 +297,7 @@ class LatexGraph:
         This function prints the tikz filled parts (only rectangles now).
         """
         for f in self.dasheds:
-            print(prefix + "\t\t\draw [color=%s, dashed] (%s) %s (%s);" % (f[1], f[0][0], "rectangle", f[0][1]), file= output)
+            print(prefix + "\t\t\draw [color=%s, line width = 2, dashed] (%s) %s (%s);" % (f[1], f[0][0], "rectangle", f[0][1]), file= output)
         
     def printTikz(self, output= None, prefix= ""):
         """
