@@ -1,3 +1,17 @@
+#  Copyright 2022 Lorenzo Pichetti lori.pichi@gmail.com
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
 from LatexGraph import *
 
 
@@ -9,7 +23,11 @@ class LatexMatrix(LatexGraph):
         self.infrows = 0
         self.infcols = 0
         self.definedbackgroundcolor = False
-        self.lableon = False
+        self.lableon = [False, False]
+        self.translation = [0,0]
+        self.unit = 1
+        self.LrShift = -0.25
+        self.LcShift = -0.25
 
     def getEntriesCorner (self, row, col, corner):
         if not corner in ['00', '01', '10', '11']:
@@ -28,7 +46,7 @@ class LatexMatrix(LatexGraph):
                     else:
                         i+=1
 
-            return("%s,%s" % (j,i))
+            return("%s,%s" % ((j + self.translation[0])*self.unit, (i + self.translation[1])*self.unit))
 
     def addSubmatrix (self, bottomEntry, topEntry, color, opacity):
         if opacity > 0:
@@ -38,10 +56,10 @@ class LatexMatrix(LatexGraph):
         
     def setBackgroundColor (self, color):
         if not self.definedbackgroundcolor:
-            self.fills.insert(0, [['0,0', '%s,%s' % (self.cols, self.rows)], color, 0.5])
+            self.fills.insert(0, [[self.getEntriesCorner(0, 0, '00'), self.getEntriesCorner(self.rows-1, self.cols-1, '11')], color, 0.5])
             self.definedbackgroundcolor = True
         else:
-            self.fills[0] = [['0,0', '%s,%s' % (self.cols, self.rows)], color, 0.5]
+            self.fills[0] = [[self.getEntriesCorner(0, 0, '00'), self.getEntriesCorner((self.rows)-1, (self.cols)-1, '11')], color, 0.5]
 
     def gen_Matrix (self):
         rows = self.rows
@@ -54,16 +72,22 @@ class LatexMatrix(LatexGraph):
         for i in range(0,rows+1):
             self.addVertex('Rlx' + str(i), [0,i])
             self.addVertex('Rdx' + str(i), [cols,i])
-            self.addEdge('Rlx' + str(i), 'Rdx' + str(i))
-            if self.lableon and (i<rows):
-                self.addVertex('Lr' + str(i), [-0.25,i+0.5], i)
+            if (i == 0) or (i==rows):
+                self.addEdge('Rlx' + str(i), 'Rdx' + str(i), c='none, line width = 1')
+            else:
+                self.addEdge('Rlx' + str(i), 'Rdx' + str(i))
+            if self.lableon[0] and (i<rows):
+                self.addVertex('Lr' + str(i), [self.LrShift,i+((0.5)*(self.unit))], i)
 
         for j in range(0,cols+1):
             self.addVertex('Clx' + str(j), [j,0])
             self.addVertex('Cdx' + str(j), [j,rows])
-            self.addEdge('Clx' + str(j), 'Cdx' + str(j))
-            if self.lableon and (j<cols):
-                self.addVertex('Lc' + str(j), [j+0.5, -0.25], j)
+            if (j == 0) or (j==cols):
+                self.addEdge('Clx' + str(j), 'Cdx' + str(j), c='none, line width = 1')
+            else:
+                self.addEdge('Clx' + str(j), 'Cdx' + str(j))
+            if self.lableon[1] and (j<cols):
+                self.addVertex('Lc' + str(j), [j+((0.5)*(self.unit)), self.LcShift], j)
             
         if self.infrows > 0:
             self.addVertex('A', [0, rows + self.infrows])
@@ -81,6 +105,26 @@ class LatexMatrix(LatexGraph):
             self.addEdge('C', '-C', c='trat')
             self.addEdge('D', '-D', c='trat')
 
-    def writeInEntry (self, row, col, toWrite):
+    def writeInEntry (self, row, col, toWrite, toColor=None):
         self.getVertex(row*1000 + col).name = toWrite
+        if toColor!=None:
+            self.getVertex(row*1000 + col).color = toColor
+
+
+
+    def translateMatrix (self, translate_vector):
+        self.translate(translate_vector)
+        self.fills = []
+        self.dasheds = []
+        self.definedbackgroundcolor = False
+        self.translation[0] += translate_vector[0]
+        self.translation[1] += translate_vector[1]
+
+    def scaleMatrix (self, scaleFactor):
+        self.scale(scaleFactor)
+        self.fills = []
+        self.dasheds = []
+        self.unit *= scaleFactor
+
+
 

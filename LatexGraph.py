@@ -223,7 +223,17 @@ class LatexGraph:
             O.vertices[k] = self.vertices[k]
         for k in list(other.vertices.keys()):
             O.vertices[k] = other.vertices[k]
+
+        for f in self.fills:
+            O.fills.append(f)
+        for f in other.fills:
+            O.fills.append(f)
         
+        for d in self.dasheds:
+            O.dasheds.append(d)
+        for d in other.dasheds:
+            O.dasheds.append(d)
+
         return (O)
     
         
@@ -283,7 +293,7 @@ class LatexGraph:
                 else:
                     style = v.connectedTo[u][1]
                 
-                print(prefix + "\t\t\draw [style=%s] (%s) %s (%s);" % (style, v.getId(), self.edge_middle_string(v, u), u.getId()), file= output)
+                print(prefix + "\t\t\draw [style=%s] (%s.center) %s (%s.center);" % (style, v.getId(), self.edge_middle_string(v, u), u.getId()), file= output)
 
     def fills_fn(self, output, prefix= ""):
         """

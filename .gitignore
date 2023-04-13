@@ -132,3 +132,5 @@ dmypy.json
 tikz_preview/*
 .kdev4/*
 *.kdev4
+SPARTA_img/*
+TODO.txt
