@@ -121,6 +121,7 @@ class LatexGraph:
         self.grid_params = None
         self.dasheds = []
         self.fills = []
+        self.decoration_shapes = []
 
     # ---------------- Graph function ---------------------        
     def addVertex(self, key, position, name=None, color=None):
@@ -165,6 +166,11 @@ class LatexGraph:
     def addDashed (self, coordinates, color):
         """ This function add a color filled zone (only rectangles are now implemented) """
         self.dasheds.append([coordinates, color]);
+
+    def addDecorationShape (self, coords, style = 'blue', shape = 0, print_type = 0):
+        tmp_shape = DecorationShape(coords, style, shape, print_type)
+        if tmp_shape.valid:
+            self.decoration_shapes.append( tmp_shape )
 
     # --------------------------- Overlapping operator -----------------------------------
     # These functions are used for overlapping two LatexGraph or transate/enlarge them
@@ -308,6 +314,10 @@ class LatexGraph:
         """
         for f in self.dasheds:
             print(prefix + "\t\t\draw [color=%s, line width = 2, dashed] (%s) %s (%s);" % (f[1], f[0][0], "rectangle", f[0][1]), file= output)
+
+    def decoration_shapes_fn (self, output, prefix= ""):
+        for f in self.decoration_shapes:
+            print(prefix + "%s" % (f.print_shape_code_line()), file= output)
         
     def printTikz(self, output= None, prefix= ""):
         """
@@ -327,8 +337,9 @@ class LatexGraph:
         if (self.grid_params != None):
             print(prefix + "\t\\draw[thick,color=gray!25!white,step=1cm,dashed] (%f,%f) grid (%f,%f);" % (self.grid_params[0][0], self.grid_params[0][1], self.grid_params[1][0], self.grid_params[1][1]), file= output)
         self.fills_fn(output, prefix)
-        self.edges(output, prefix)
-        self.dasheds_fn(output, prefix)
+        self.edges(output, "\t" + prefix)
+        self.dasheds_fn(output, "\t" + prefix)
+        self.decoration_shapes_fn(output, "\t" + prefix)
         print(prefix + "\t\end{pgfonlayer}", file= output)
         
         print(prefix + "\end{tikzpicture}", file= output)
@@ -488,3 +499,75 @@ def petersen():
 import os
 def showTikzPreview():
     os.system('./tikz_preview/script.sh')
+
+supported_decoration_shapes = [ "rectangle", "circle", "cycle" ]
+decoration_shape_printing_types = [ "draw", "fill" ]
+
+def has_len (x):
+    return hasattr(x, '__len__') and (not isinstance(x, str))
+
+class DecorationShape:
+    """
+    A DecorationShape is composed by 5 parameters:
+        -----------
+        [ ... insert here a description ... ]
+
+        -----------
+    """
+    def check_coords(self):
+        coords = self.coordinates
+        decoration_shape_str = self.shape_type
+        if has_len(coords):
+            if decoration_shape_str == "rectangle":
+                if len(coords) == 2 and has_len(coords[0]) and len(coords[0]) == 2 and has_len(coords[1]) and len(coords[1]) == 2:
+                    print("Added a valid rectangles shape")
+                    return True
+                else:
+                    print("Invalid rectangles shape")
+                    return False
+            if decoration_shape_str == "circle":
+                if len(coords) == 2 and has_len(coords[0]) and len(coords[0]) == 2 and  not(has_len(coords[1])):
+                    print("Added a valid circle shape")
+                    return True
+                else:
+                    print("Invalid circle shape")
+                    return False
+            if decoration_shape_str == "cycle":
+                for i in range(0, len(coords)):
+                    if not(has_len(coords[i])) or len(coords[i]) != 2:
+                        print("Invalid cycle shape")
+                        return False
+                print("Added a valid cycle shape")
+                return True
+
+            print("%s is an unsupported decoration shape" % decoration_shape_str)
+            return False
+
+        else:
+            print("Invalid coords")
+            return False
+
+
+    def __init__ (self, coords, style = 'blue', shape = 0, print_type = 0):
+        self.style = style
+        self.coordinates = coords
+        self.shape_type = supported_decoration_shapes[shape]
+        self.printing_types = decoration_shape_printing_types[print_type]
+        self.valid = self.check_coords()
+
+    def print_shape_code_line(self):
+        if self.shape_type == "rectangle":
+            s = "\%s[style=%s] (%1.3f,%1.3f) rectangle (%1.3f,%1.3f);" % (self.printing_types, self.style, self.coordinates[0][0], self.coordinates[0][1], self.coordinates[1][0], self.coordinates[1][1] )
+        if self.shape_type == "circle":
+            s = "\%s[style=%s] (%1.3f,%1.3f) circle (%1.3f);" % (self.printing_types, self.style, self.coordinates[0][0], self.coordinates[0][1], self.coordinates[1] )
+        if self.shape_type == "cycle":
+            t1 = "\%s[style=%s] (%1.3f,%1.3f)" % ( self.printing_types, self.style, self.coordinates[0][0], self.coordinates[0][1])
+            t2 = ""
+            for i in range(1, len(self.coordinates)):
+                tt = " -- (%1.3f,%1.3f)" % ( self.coordinates[i][0], self.coordinates[i][1])
+                t2 += tt
+            t3 = " cycle;"
+            s = "%s%s%s" % (t1, t2, t3)
+
+        return s
+
