@@ -14,7 +14,7 @@
 
 
 from LatexGraph import *
-from LatexLattice import *
+#from LatexLattice import *
 
 class LatexFigure:
     """
@@ -299,3 +299,26 @@ def readLatexFile():
     
     print("Insert now the figures or the graphs with '<output's name>.insertFigure(<LatexFigure>)' or '<output's name>.insertGraph(<LatexGraph>)'")
     return(F)
+
+"""
+================================================= Example to test a Latex step-by-step document =================================================
+"""
+
+def test_SbyS_document():
+    F = LatexFile(fp="test.tex")
+
+    G = petersen()
+    v = G.getVertex(0)
+    print(v.id, end="")
+    for i in range(0,5):
+        eg = randint(0,2)
+        v = list(v.connectedTo)[eg]
+        v.color = "red"
+        print(" --> " + v.id, end="")
+        E = LatexFigure()
+        E.element = G
+        E.title = "Step %d" % i
+        F.insertFigure(E)
+    print(" ")
+    F.printLatexFile()
+
