@@ -46,6 +46,8 @@ def print_preambles(output):
 \\tikzstyle{wstyle}=[circle,fill=white,draw=black]
 \\tikzstyle{gstyle}=[circle,fill=gray,draw=gray]
 \\tikzstyle{little}=[circle,fill=gray,draw=gray,scale=0.5 pt]
+\\tikzstyle{littlered}=[circle,fill=red,draw=gray,scale=0.5 pt]
+\\tikzstyle{littlepink}=[circle,fill=pink,draw=gray,scale=0.5 pt]
 \\tikzstyle{littlew}=[circle,fill=white,draw=gray,scale=0.5 pt]
 
 \\tikzstyle{simple}=[-,draw=white,line width=3.000]
@@ -345,8 +347,11 @@ class LatexGraph:
         print(prefix + "\end{tikzpicture}", file= output)
             
 
-    def printTikzPreview(self):
-        fp = open("tikz_preview/tikz_preview.tex", "w")
+    def printTikzPreview(self, output=None):
+        if output == None:
+            fp = open("tikz_preview/tikz_preview.tex", "w")
+        else:
+            fp = open("tikz_preview/" + output + ".tex", "w")
 
         print("""\\documentclass{article}
 \\usepackage[utf8]{inputenc}
@@ -495,10 +500,67 @@ def petersen():
 
     return(P)
 
+# This function return a Piramid graph
+def piramid():
+    T = LatexGraph();
+
+    # First triangle
+    T.addVertex(0, [0,0])
+    T.addVertex(1, [2,0])
+    T.addVertex(2, [1,2])
+
+    T.addEdge(0,1)
+    T.addEdge(2,1)
+    T.addEdge(0,2)
+
+    # Second triangle
+    T.addVertex(3, [3,0])
+    T.addVertex(4, [5,0])
+    T.addVertex(5, [4,2])
+
+    T.addEdge(3,4)
+    T.addEdge(5,4)
+    T.addEdge(3,5)
+
+    # Third triangle
+    T.addVertex(6, [1.5,3])
+    T.addVertex(7, [3.5,3])
+    T.addVertex(8, [2.5,5])
+
+    T.addEdge(6,7)
+    T.addEdge(8,7)
+    T.addEdge(6,8)
+
+    T.addEdge(1,3)
+    T.addEdge(2,6)
+    T.addEdge(5,7)
+
+    T.node_style = "wstyle"
+
+    return(T)
+
+def k9pet():
+    G = petersen()
+    for i in G.vertices:
+        v = G.getVertex(i)
+        for j in G.vertices:
+            if j != i:
+                G.addEdge(i,j)
+    return(G)
+
+def vertexHighlight(G, i):
+    v = G.getVertex(i)
+    v.color = "littlered"
+    for u in list(v.connectedTo):
+        u.color = "littlepink"
+        v.connectedTo[u] = [0, 'greenstyle']
 
 import os
-def showTikzPreview():
-    os.system('./tikz_preview/script.sh')
+def showTikzPreview(file_name = None):
+    if file_name == None:
+        os.system('./tikz_preview/script.sh')
+    else:
+        os.system('./tikz_preview/script.sh ' + file_name)
 
 supported_decoration_shapes = [ "rectangle", "circle", "cycle" ]
 decoration_shape_printing_types = [ "draw", "fill" ]
