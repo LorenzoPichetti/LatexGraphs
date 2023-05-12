@@ -20,6 +20,8 @@ import time
 import os
 import subprocess
 
+from networkit import *
+
 def print_preambles(output):
     """
     This function prints the needed TIKZ-preambles for the LaTex document.
@@ -106,11 +108,18 @@ class LatexGraph:
             These two couples of numbers are the bottom-left and upper-right corners for the grid and clip rectangles.
             If the parameters are set as 'None' then no grid or clib will be applied.
 
-        > fills: [[cordinate1, cordinate1], color, opacity]
+        > (TO DELETE with dasheds) fills: [[cordinate1, cordinate1], color, opacity]
             This elements are the printed '\\fill' in the graph. Now only rectangles are supported. The first couple represent the
             bottom left and the top right rectangle corners (could be both vertices' names that cordinates). 'color' is a string for
             the filling color and must be 'opacity' a number in [0,1].
-            
+
+        > decoration_shapes: [To DO]
+            ...
+
+        > nkitGraph: None or networkit.Graph
+            This elements are initialized as None and sobstituted by the networkit version of the LatexGraph by using
+            the method 'updateNetworkitGraph'.
+
         -----------
     """
     
@@ -124,6 +133,7 @@ class LatexGraph:
         self.dasheds = []
         self.fills = []
         self.decoration_shapes = []
+        self.nkitGraph = None
 
     # ---------------- Graph function ---------------------        
     def addVertex(self, key, position, name=None, color=None):
@@ -153,7 +163,7 @@ class LatexGraph:
         be printed with the default value stored in 'self.edges_style').
         """
         self.vertices[str(f)].addNeighbor(self.vertices[str(t)], w, c)
-    
+
     def getVertices(self):
         """ It returns the list containing all the vertices of G """
         return list(self.vertices.keys())
@@ -244,7 +254,56 @@ class LatexGraph:
 
         return (O)
     
+    # ------------------------------- Networkit ---------------------------------------
         
+    def updateNetworkitGraph(self):
+        """ This function generates in 'self.nkitGraph' a networkit graph with the same charateristics of 'self' """
+        if self.nkitGraph == None:
+            self.nkitGraph = Graph()
+
+        for v in dict(sorted(self.vertices.items())).values():
+            self.nkitGraph.addNode()
+
+        for v in self.vertices.values():
+            for w in v.connectedTo:
+                self.nkitGraph.addEdge(int(v.id), int(w.id))
+
+    def nkitBc(self):
+        self.updateNetworkitGraph()
+        bc = centrality.ApproxBetweenness(self.nkitGraph).run()
+        while(True):
+            if bc.hasFinished():
+                break
+        return bc.scores()
+
+    def addVertexByNkit(self, i):
+        """ This function is used by readFromNKitGraph """
+        new_id = self.numVertices
+        for v in self.vertices.values():
+            v.position = [math.cos((2*math.pi * int(v.id)) / (new_id+1)), math.sin((2*math.pi * int(v.id)) / (new_id+1))]
+
+        position = [math.cos((2*math.pi * new_id) / (new_id+1)), math.sin((2*math.pi * new_id) / (new_id+1))]
+        self.addVertex(new_id, position, new_id)
+
+    def addEdgeByNkit(self, f, t, w, edgeId):
+        """ This function is used by readFromNKitGraph """
+        self.addEdge(f, t, w)
+
+    def readFromNKitGraph(self, NKitG):
+        """ This function generate a LatexGraph by a networkit Graph (positioning the vertices on the 1-circle) """
+        if self.numVertices != 0:
+            print("ERROR: G.readFromNKitGraph() must be used on a void LatexGraph")
+        else:
+            NKitG.forNodes(self.addVertexByNkit)
+            NKitG.forEdges(self.addEdgeByNkit)
+
+            self.node_style  = "wstyle"
+            self.edges_style = "thiny"
+
+    def writeEdgeList(self, file_name):
+        self.updateNetworkitGraph()
+        writeGraph(self.nkitGraph, "./EdgeLists/" + file_name + ".el", graphio.Format(1))
+
     # --------------------------- Printing function -----------------------------------
     # The following functions are used to prepare the parameters for the Tikz functions
     
@@ -255,7 +314,7 @@ class LatexGraph:
         self.edges_style = string
 
     def printAsEdgelistfile(self, file_name="G_edgelist"):
-        fp = open(file_name + ".el", "w")
+        fp = open("EdgeLists/" + file_name + ".el", "w")
         print("# edge list generated with LatexGraph", file= fp)
         print("# Nodes: %d Edges: %d" % (self.numVertices, -1), file= fp)
         for v in self.vertices.values():
