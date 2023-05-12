@@ -253,6 +253,14 @@ class LatexGraph:
         
     def set_edges_style(self, string):
         self.edges_style = string
+
+    def printAsEdgelistfile(self, file_name="G_edgelist"):
+        fp = open(file_name + ".el", "w")
+        print("# edge list generated with LatexGraph", file= fp)
+        print("# Nodes: %d Edges: %d" % (self.numVertices, -1), file= fp)
+        for v in self.vertices.values():
+            for w in v.connectedTo.keys():
+                print("%s %s" % (v.id, w.id), file= fp)
         
         
     # --------------------- Tikz functions -------------------------
