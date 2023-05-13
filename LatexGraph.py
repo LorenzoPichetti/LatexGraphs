@@ -108,11 +108,6 @@ class LatexGraph:
             These two couples of numbers are the bottom-left and upper-right corners for the grid and clip rectangles.
             If the parameters are set as 'None' then no grid or clib will be applied.
 
-        > (TO DELETE with dasheds) fills: [[cordinate1, cordinate1], color, opacity]
-            This elements are the printed '\\fill' in the graph. Now only rectangles are supported. The first couple represent the
-            bottom left and the top right rectangle corners (could be both vertices' names that cordinates). 'color' is a string for
-            the filling color and must be 'opacity' a number in [0,1].
-
         > decoration_shapes: [To DO]
             ...
 
@@ -130,8 +125,6 @@ class LatexGraph:
         self.edges_style = "none"
         self.clip_params = None
         self.grid_params = None
-        self.dasheds = []
-        self.fills = []
         self.decoration_shapes = []
         self.nkitGraph = None
 
@@ -171,15 +164,8 @@ class LatexGraph:
     def __iter__(self):
         return iter(self.vertices.values())
 
-    def addFill (self, coordinates, color, opacity):
-        """ This function add a color filled zone (only rectangles are now implemented) """
-        self.fills.append([coordinates, color, opacity]);
-    
-    def addDashed (self, coordinates, color):
-        """ This function add a color filled zone (only rectangles are now implemented) """
-        self.dasheds.append([coordinates, color]);
-
     def addDecorationShape (self, coords, style = 'blue', shape = 0, print_type = 0):
+        """ This function add a VALID DecorationShape to the vector 'decoration_shapes' """
         tmp_shape = DecorationShape(coords, style, shape, print_type)
         if tmp_shape.valid:
             self.decoration_shapes.append( tmp_shape )
@@ -242,15 +228,10 @@ class LatexGraph:
         for k in list(other.vertices.keys()):
             O.vertices[k] = other.vertices[k]
 
-        for f in self.fills:
-            O.fills.append(f)
-        for f in other.fills:
-            O.fills.append(f)
-        
-        for d in self.dasheds:
-            O.dasheds.append(d)
-        for d in other.dasheds:
-            O.dasheds.append(d)
+        for ds in self.decoration_shapes:
+            O.decoration_shapes.append(ds)
+        for ds in other.decoration_shapes:
+            O.decoration_shapes.append(ds)
 
         return (O)
     
@@ -328,7 +309,7 @@ class LatexGraph:
     def nodes(self, output, prefix= ""):
         """
         This function prints the tikz lines relative to all the graph's vertices.
-        If a vertex has a 'None' value in the field 'color', it will be printed with color setted in the LatexGraph's 
+        If a vertex has a 'None' value in the field 'color', it will be printed with color setted in the LatexGraph's
         'node_style', and, if the field 'name' is None, the node will be printed without text inside.
         """
         for i in list(self.vertices.keys()):
@@ -370,20 +351,6 @@ class LatexGraph:
                 
                 print(prefix + "\t\t\draw [style=%s] (%s.center) %s (%s.center);" % (style, v.getId(), self.edge_middle_string(v, u), u.getId()), file= output)
 
-    def fills_fn(self, output, prefix= ""):
-        """
-        This function prints the tikz filled parts (only rectangles now).
-        """
-        for f in self.fills:
-            print(prefix + "\t\t\\fill [color=%s, opacity=%s] (%s) %s (%s);" % (f[1], f[2], f[0][0], "rectangle", f[0][1]), file= output)
-
-    def dasheds_fn(self, output, prefix= ""):
-        """
-        This function prints the tikz filled parts (only rectangles now).
-        """
-        for f in self.dasheds:
-            print(prefix + "\t\t\draw [color=%s, line width = 2, dashed] (%s) %s (%s);" % (f[1], f[0][0], "rectangle", f[0][1]), file= output)
-
     def decoration_shapes_fn (self, output, prefix= ""):
         for f in self.decoration_shapes:
             print(prefix + "%s" % (f.print_shape_code_line()), file= output)
@@ -405,20 +372,15 @@ class LatexGraph:
             print(prefix + "\t\\clip (%f,%f) rectangle (%f,%f);" % (self.clip_params[0][0], self.clip_params[0][1], self.clip_params[1][0], self.clip_params[1][1]), file= output)
         if (self.grid_params != None):
             print(prefix + "\t\\draw[thick,color=gray!25!white,step=1cm,dashed] (%f,%f) grid (%f,%f);" % (self.grid_params[0][0], self.grid_params[0][1], self.grid_params[1][0], self.grid_params[1][1]), file= output)
-        self.fills_fn(output, prefix)
         self.edges(output, "\t" + prefix)
-        self.dasheds_fn(output, "\t" + prefix)
         self.decoration_shapes_fn(output, "\t" + prefix)
         print(prefix + "\t\end{pgfonlayer}", file= output)
         
         print(prefix + "\end{tikzpicture}", file= output)
             
 
-    def printTikzPreview(self, output=None):
-        if output == None:
-            fp = open("tikz_preview/tikz_preview.tex", "w")
-        else:
-            fp = open("tikz_preview/" + output + ".tex", "w")
+    def printTikzPreview(self, output="tikz_preview", out_folder="tikz_preview"):
+        fp = open(out_folder + "/" + output + ".tex", "w")
 
         print("""\\documentclass{article}
 \\usepackage[utf8]{inputenc}
@@ -442,7 +404,7 @@ class LatexVertex:
             It contains a string to univocally identify this particular vertex.
         
         > connectedTo : dictionary ({key1: [weight1, color1], key2: [weight2, color2], ...})
-            Every element is composed by oneother LatexVertex as kay and a couple of weight (of arbitrary type) and 
+            Every element is composed by oneother LatexVertex as kay and a couple of weight (of arbitrary type) and
             color (str or None) as value.
             es. if the element v.connectedTo = {w: [10, "bluearrow"], z: [3, "greenstyle"]} then the vertex v is
             connected to the vertex w with weight 10 and color "bluearrow" and to the vertex z with weight 3 and 
@@ -504,8 +466,9 @@ class LatexVertex:
         return self.id
     
     
-    
-# These function returns one of the three predefined graphs (used for the tests and the testing functions)
+# ================================================ Predefined Graphs ==================================================
+# These functions return one of the predefined graphs (used for the tests and the testing functions)
+
 def testGraph(ch= 1):
     G = LatexGraph()
     if (ch == 1):
@@ -629,11 +592,30 @@ def showTikzPreview(file_name = None):
     else:
         os.system('./tikz_preview/script.sh ' + file_name)
 
-supported_decoration_shapes = [ "rectangle", "circle", "cycle" ]
+
+# ================================================= DecorationShapes ==================================================
+# Here we define the vectors with the supported shapes and printing types for the 'DecorationShape' objects.
+# We also define the function 'has_len' that will be used in the method 'check_coords'.
+# Afther these we define the class 'DecorationShapes' to be used in the LatexGraph's vector 'decoration_shapes'.
+
+
+supported_decoration_shapes = [ "rectangle", "circle", "cycle", "opencycle" ]
 decoration_shape_printing_types = [ "draw", "fill" ]
+
+supportedDecorationShapeString = """
+rectangle = [[bottom-left x, bottom-left y], [top-right x, top-right y]]
+
+circle    = [[cemtre x, centre y], redius]
+
+cycle     = [[point0 x, point0 y], [point1 x, point1 y], [point2 x, point2 y], ...]
+
+opencycle = [[point0 x, point0 y], [point1 x, point1 y], [point2 x, point2 y], ...]
+
+"""
 
 def has_len (x):
     return hasattr(x, '__len__') and (not isinstance(x, str))
+
 
 class DecorationShape:
     """
@@ -644,9 +626,17 @@ class DecorationShape:
         -----------
     """
     def check_coords(self):
+        """
+        This function checks if the 'DecorationShape' objects are well defined.
+        """
+
         coords = self.coordinates
         decoration_shape_str = self.shape_type
+
+        " check if 'coords' is a vector (but not a string)"
         if has_len(coords):
+
+            " switch over the 'shape_type' and shape tests"
             if decoration_shape_str == "rectangle":
                 if len(coords) == 2 and has_len(coords[0]) and len(coords[0]) == 2 and has_len(coords[1]) and len(coords[1]) == 2:
                     print("Added a valid rectangles shape")
@@ -661,7 +651,7 @@ class DecorationShape:
                 else:
                     print("Invalid circle shape")
                     return False
-            if decoration_shape_str == "cycle":
+            if decoration_shape_str == "cycle" or decoration_shape_str == "opencycle":
                 for i in range(0, len(coords)):
                     if not(has_len(coords[i])) or len(coords[i]) != 2:
                         print("Invalid cycle shape")
@@ -678,13 +668,26 @@ class DecorationShape:
 
 
     def __init__ (self, coords, style = 'blue', shape = 0, print_type = 0):
+        """
+        The DecorationShape object is initialized as with his coordinates (mandatory)
+        and as a filled blue rectangle (if not specified). This function puts in 'valid'
+        the result of the test 'check_coords'.
+        """
+
         self.style = style
         self.coordinates = coords
         self.shape_type = supported_decoration_shapes[shape]
         self.printing_types = decoration_shape_printing_types[print_type]
         self.valid = self.check_coords()
 
+        if not self.valid:
+            print(supportedDecorationShapeString)
+
     def print_shape_code_line(self):
+        """
+        This function prints the tikz code-lines related to a 'DecorationShape' object.
+        """
+
         if self.shape_type == "rectangle":
             s = "\%s[style=%s] (%1.3f,%1.3f) rectangle (%1.3f,%1.3f);" % (self.printing_types, self.style, self.coordinates[0][0], self.coordinates[0][1], self.coordinates[1][0], self.coordinates[1][1] )
         if self.shape_type == "circle":
@@ -695,7 +698,15 @@ class DecorationShape:
             for i in range(1, len(self.coordinates)):
                 tt = " -- (%1.3f,%1.3f)" % ( self.coordinates[i][0], self.coordinates[i][1])
                 t2 += tt
-            t3 = " cycle;"
+            t3 = " -- cycle;"
+            s = "%s%s%s" % (t1, t2, t3)
+        if self.shape_type == "opencycle":
+            t1 = "\%s[style=%s] (%1.3f,%1.3f)" % ( self.printing_types, self.style, self.coordinates[0][0], self.coordinates[0][1])
+            t2 = ""
+            for i in range(1, len(self.coordinates)):
+                tt = " -- (%1.3f,%1.3f)" % ( self.coordinates[i][0], self.coordinates[i][1])
+                t2 += tt
+            t3 = ";"
             s = "%s%s%s" % (t1, t2, t3)
 
         return s

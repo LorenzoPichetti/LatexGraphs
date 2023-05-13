@@ -29,6 +29,26 @@ class LatexMatrix(LatexGraph):
         self.LrShift = -0.25
         self.LcShift = -0.25
 
+    #def getEntriesCorner_old (self, row, col, corner):
+        #if not corner in ['00', '01', '10', '11']:
+            #print("corner must be in [00, 01, 10, 11]")
+        #else:
+            #i = row
+            #j = col
+
+            #if (corner != '00'):
+                #if corner == '11':
+                    #j+=1
+                    #i+=1
+                #else:
+                    #if corner == '10':
+                        #j+=1
+                    #else:
+                        #i+=1
+
+            #return("%s,%s" % ((j + self.translation[0])*self.unit, (i + self.translation[1])*self.unit))
+
+
     def getEntriesCorner (self, row, col, corner):
         if not corner in ['00', '01', '10', '11']:
             print("corner must be in [00, 01, 10, 11]")
@@ -46,20 +66,24 @@ class LatexMatrix(LatexGraph):
                     else:
                         i+=1
 
-            return("%s,%s" % ((j + self.translation[0])*self.unit, (i + self.translation[1])*self.unit))
+            return( [(j + self.translation[0])*self.unit, (i + self.translation[1])*self.unit] )
 
     def addSubmatrix (self, bottomEntry, topEntry, color, opacity):
+        tmp = [self.getEntriesCorner(bottomEntry[0], bottomEntry[1], '00'), self.getEntriesCorner(topEntry[0], topEntry[1], '11')]
         if opacity > 0:
-            self.addFill([self.getEntriesCorner(bottomEntry[0], bottomEntry[1], '00'), self.getEntriesCorner(topEntry[0], topEntry[1], '11')], color, opacity)
+            self.addDecorationShape (tmp, color + ', opacity = ' + str(opacity), 0, 1)
         else:
-            self.addDashed([self.getEntriesCorner(bottomEntry[0], bottomEntry[1], '00'), self.getEntriesCorner(topEntry[0], topEntry[1], '11')], color)
+            self.addDecorationShape (tmp, color + ', line width = 2, dash pattern=on 8pt off 4pt', 0, 0)
         
     def setBackgroundColor (self, color):
+        tmp = [self.getEntriesCorner(0, 0, '00'), self.getEntriesCorner(self.rows-1, self.cols-1, '11')]
+        tmp_shape = DecorationShape(tmp, color + ', opacity = ' + str(0.5), 0, 1)
+
         if not self.definedbackgroundcolor:
-            self.fills.insert(0, [[self.getEntriesCorner(0, 0, '00'), self.getEntriesCorner(self.rows-1, self.cols-1, '11')], color, 0.5])
+            self.decoration_shapes.insert(0, tmp_shape )
             self.definedbackgroundcolor = True
         else:
-            self.fills[0] = [[self.getEntriesCorner(0, 0, '00'), self.getEntriesCorner((self.rows)-1, (self.cols)-1, '11')], color, 0.5]
+            self.decoration_shapes[0] = tmp_shape
 
     def gen_Matrix (self):
         rows = self.rows
