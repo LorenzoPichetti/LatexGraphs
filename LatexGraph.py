@@ -22,66 +22,6 @@ import subprocess
 
 from networkit import *
 
-def print_preambles(output):
-    """
-    This function prints the needed TIKZ-preambles for the LaTex document.
-    """
-    print("""% =========================================== Tikz setting ================================================
-%\\usepackage[svgnames]{xcolor}
-\\usepackage{tikz}
-\\usepackage{tikzscale}
-\\usetikzlibrary{decorations.markings}
-\\usetikzlibrary{shapes.geometric}
-\\usetikzlibrary{through}
-%\\pagestyle{empty}
-
-\\pgfdeclarelayer{edgelayer}
-\\pgfdeclarelayer{nodelayer}
-\\pgfsetlayers{edgelayer,nodelayer,main}
-
-\\tikzstyle{none}=[inner sep=0pt]
-
-\\tikzstyle{rn}=[circle,fill=red,draw=black,line width=0.8 pt]
-\\tikzstyle{gn}=[circle,fill=lime,draw=black,line width=0.8 pt]
-\\tikzstyle{yn}=[circle,fill=yellow,draw=black,line width=0.8 pt]
-\\tikzstyle{blstyle}=[circle,fill=black,draw=black]
-\\tikzstyle{wstyle}=[circle,fill=white,draw=black]
-\\tikzstyle{gstyle}=[circle,fill=gray,draw=gray]
-\\tikzstyle{little}=[circle,fill=gray,draw=gray,scale=0.5 pt]
-\\tikzstyle{littlered}=[circle,fill=red,draw=gray,scale=0.5 pt]
-\\tikzstyle{littlepink}=[circle,fill=pink,draw=gray,scale=0.5 pt]
-\\tikzstyle{littlew}=[circle,fill=white,draw=gray,scale=0.5 pt]
-
-\\tikzstyle{simple}=[-,draw=white,line width=3.000]
-\\tikzstyle{arrow}=[->,draw=darkgray,line width=2.000]
-\\tikzstyle{tick}=[-,draw=black,postaction={decorate},decoration={markings,mark=at position .5 with {\draw (0,-0.1) -- (0,0.1);}},line width=2.000]
-\\tikzstyle{redstyle}=[-,draw=red,line width=3.000]
-\\tikzstyle{bluestyle}=[-,draw=blue,line width=3.000]
-\\tikzstyle{greenstyle}=[-,draw=lime,line width=3.000]
-\\tikzstyle{flow}=[->,draw=green,line width=2.000]
-\\tikzstyle{redarrow}=[-latex,draw=red,line width=3.000]
-\\tikzstyle{redarrow2}=[-latex,draw=red,line width=1.500]
-\\tikzstyle{greenarrow}=[-latex,draw=green,line width=3.000]
-\\tikzstyle{bluearrow}=[-latex,draw=blue,line width=3.000]
-\\tikzstyle{axe}=[->,draw=black,line width=2.000]
-\\tikzstyle{thiny}=[-,draw=lightgray,line width=1.000]
-\\tikzstyle{trat}=[thick,color=gray!25!white,step=1em,dashed]
-\\tikzstyle{edgenone}=[-,draw=white,line width=0.000]
-
-% ------------------------------------------------------------------------------------------
-""", file= output)
-
-def print_tikz_preview(output):
-    """
-    This function prints the pac for the TiKZ preview latex file
-    """
-    print("""
-\\usepackage[graphics,tightpage,active]{preview}
-\\PreviewEnvironment{tikzpicture}
-\\newlength{\\imagewidth}
-\\newlength{\\imagescale}
-
-""", file= output)
     
 class LatexGraph:
     """
@@ -108,8 +48,13 @@ class LatexGraph:
             These two couples of numbers are the bottom-left and upper-right corners for the grid and clip rectangles.
             If the parameters are set as 'None' then no grid or clib will be applied.
 
-        > decoration_shapes: [To DO]
-            ...
+        > decoration_shapes: [] or [DecorationShape0, ...]
+            This vector is used for adding one or more 'DecorationShape' (see the class definition) to the LatexGraph.
+            The process is done by the method 'self.addDecorationShape( ... )'
+
+        > custom_tikz_styles: [] or [TikzStyle0, ...]
+            This vector is used for adding one or more custom 'TikzStyle' (see the class definition) to the LatexGraph.
+            The process is done by the method 'self.addCustomTikzStyle( ... )'
 
         > nkitGraph: None or networkit.Graph
             This elements are initialized as None and sobstituted by the networkit version of the LatexGraph by using
@@ -126,6 +71,7 @@ class LatexGraph:
         self.clip_params = None
         self.grid_params = None
         self.decoration_shapes = []
+        self.custom_tikz_styles = []
         self.nkitGraph = None
 
     # ---------------- Graph function ---------------------        
@@ -169,6 +115,12 @@ class LatexGraph:
         tmp_shape = DecorationShape(coords, style, shape, print_type)
         if tmp_shape.valid:
             self.decoration_shapes.append( tmp_shape )
+
+    def addCustomTikzStyle (self, name, type, draw = None, line_width = None, dash_pattern = None, fill = None, opacity = None):
+        """ This function add a VALID TikzStyle to the vector 'custom_tikz_styles' """
+        tmp_style = TikzStyle(name, type, draw, line_width, dash_pattern, fill, opacity)
+        if tmp_style.valid:
+            self.custom_tikz_styles.append( tmp_style )
 
     # --------------------------- Overlapping operator -----------------------------------
     # These functions are used for overlapping two LatexGraph or transate/enlarge them
@@ -379,22 +331,6 @@ class LatexGraph:
         print(prefix + "\end{tikzpicture}", file= output)
             
 
-    def printTikzPreview(self, output="tikz_preview", out_folder="tikz_preview"):
-        fp = open(out_folder + "/" + output + ".tex", "w")
-
-        print("""\\documentclass{article}
-\\usepackage[utf8]{inputenc}
-
-\\title{TiKZ Preview}
-\\author{Lorenzo Pichetti}
-""", file= fp)
-        print_preambles(fp)
-        print_tikz_preview(fp)
-        print("\\begin{document}", file= fp)
-        self.printTikz(output=fp)
-        print("\\end{document}", file= fp)
-
-        #subprocess.run(['pdflatex', '-interaction=nonstopmode', 'tikz_preview.tex'])
 
 class LatexVertex:
     """
@@ -465,7 +401,112 @@ class LatexVertex:
         """ It returns the vertex id """
         return self.id
     
-    
+# ============================================== TikzPreview functions ================================================
+# These functions generate and compile a '.tex' file in which the LatexGraph are showed. The files are by default
+#  generated in 'tikz_preview/'. A single file could also contain more then one LatexGraph.
+#  If you are interested in printing a '.tex' article or a beamer presentation see 'LatexFigure.py'
+
+def printPreviewPackages(output):
+    """
+    This function prints the packages for the TiKZ preview latex file
+    """
+    print("""
+\\usepackage[graphics,tightpage,active]{preview}
+\\PreviewEnvironment{tikzpicture}
+\\newlength{\\imagewidth}
+\\newlength{\\imagescale}
+
+""", file= output)
+
+predefinedTikzStyles = ["rn", "gn", "yn", "blstyle", "wstyle", "gstyle", "little", "littlered", "littlepink", "littlew", "simple", "arrow", "tick", "redstyle", "bluestyle", "greenstyle", "flow", "redarrow", "redarrow2", "greenarrow", "bluearrow", "axe", "thiny", "trat", "edgenone"]
+
+def printTikzPreambles(output, customTikzStyles=None):
+    """
+    This function prints the needed TIKZ-preambles for the LaTex document.
+    """
+    print("""% =========================================== Tikz setting ================================================
+%\\usepackage[svgnames]{xcolor}
+\\usepackage{tikz}
+\\usepackage{tikzscale}
+\\usetikzlibrary{decorations.markings}
+\\usetikzlibrary{shapes.geometric}
+\\usetikzlibrary{through}
+%\\pagestyle{empty}
+
+\\pgfdeclarelayer{edgelayer}
+\\pgfdeclarelayer{nodelayer}
+\\pgfsetlayers{edgelayer,nodelayer,main}
+
+\\tikzstyle{none}=[inner sep=0pt]
+
+\\tikzstyle{rn}=[circle,fill=red,draw=black,line width=0.8 pt]
+\\tikzstyle{gn}=[circle,fill=lime,draw=black,line width=0.8 pt]
+\\tikzstyle{yn}=[circle,fill=yellow,draw=black,line width=0.8 pt]
+\\tikzstyle{blstyle}=[circle,fill=black,draw=black]
+\\tikzstyle{wstyle}=[circle,fill=white,draw=black]
+\\tikzstyle{gstyle}=[circle,fill=gray,draw=gray]
+\\tikzstyle{little}=[circle,fill=gray,draw=gray,scale=0.5 pt]
+\\tikzstyle{littlered}=[circle,fill=red,draw=gray,scale=0.5 pt]
+\\tikzstyle{littlepink}=[circle,fill=pink,draw=gray,scale=0.5 pt]
+\\tikzstyle{littlew}=[circle,fill=white,draw=gray,scale=0.5 pt]
+
+\\tikzstyle{simple}=[-,draw=white,line width=3.000]
+\\tikzstyle{arrow}=[->,draw=darkgray,line width=2.000]
+\\tikzstyle{tick}=[-,draw=black,postaction={decorate},decoration={markings,mark=at position .5 with {\draw (0,-0.1) -- (0,0.1);}},line width=2.000]
+\\tikzstyle{redstyle}=[-,draw=red,line width=3.000]
+\\tikzstyle{bluestyle}=[-,draw=blue,line width=3.000]
+\\tikzstyle{greenstyle}=[-,draw=lime,line width=3.000]
+\\tikzstyle{flow}=[->,draw=green,line width=2.000]
+\\tikzstyle{redarrow}=[-latex,draw=red,line width=3.000]
+\\tikzstyle{redarrow2}=[-latex,draw=red,line width=1.500]
+\\tikzstyle{greenarrow}=[-latex,draw=green,line width=3.000]
+\\tikzstyle{bluearrow}=[-latex,draw=blue,line width=3.000]
+\\tikzstyle{axe}=[->,draw=black,line width=2.000]
+\\tikzstyle{thiny}=[-,draw=lightgray,line width=1.000]
+\\tikzstyle{trat}=[thick,color=gray!25!white,step=1em,dashed]
+\\tikzstyle{edgenone}=[-,draw=white,line width=0.000]
+""", file= output)
+
+    if customTikzStyles != None:
+        for style in customTikzStyles:
+            print(style.printStyleCodeLine(), file= output)
+
+    print("% ------------------------------------------------------------------------------------------", file= output)
+
+
+def printTikzPreview(Gvec, output="tikz_preview", out_folder="tikz_preview"):
+
+    if (has_len(Gvec)):
+        for G in Gvec:
+            if not isinstance(G, LatexGraph):
+                return "not all the element in Gvec are LatexGraphs"
+
+        custom_tikz_styles = []
+        for G in Gvec:
+            for sty in G.custom_tikz_styles:
+                custom_tikz_styles.append(sty)
+
+        fp = open(out_folder + "/" + output + ".tex", "w")
+
+        print("""\\documentclass{article}
+\\usepackage[utf8]{inputenc}
+
+\\title{TiKZ Preview}
+\\author{Lorenzo Pichetti}
+""", file= fp)
+        printTikzPreambles(fp, custom_tikz_styles)
+        printPreviewPackages(fp)
+        print("\\begin{document}", file= fp)
+        for G in Gvec:
+            G.printTikz(output=fp)
+        print("\\end{document}", file= fp)
+
+        #subprocess.run(['pdflatex', '-interaction=nonstopmode', 'tikz_preview.tex'])
+        return "Succesfully printed in %s" % (out_folder + '/' + output + '.tex')
+
+    else:
+        return "Gvec must be a vector of LatexGraphs"
+
 # ================================================ Predefined Graphs ==================================================
 # These functions return one of the predefined graphs (used for the tests and the testing functions)
 
@@ -710,4 +751,46 @@ class DecorationShape:
             s = "%s%s%s" % (t1, t2, t3)
 
         return s
+
+# ==================================================== TikzStyles =====================================================
+# [ ... ]
+
+class TikzStyle:
+
+    def __init__ (self, name, type, draw = None, line_width = None, dash_pattern = None, fill = None, opacity = None):
+        """
+        [ ... ] line_width=1.5, dash_pattern=
+        """
+
+        self.name = name
+        self.type = type
+
+        self.draw = draw
+        self.dash_pattern = dash_pattern
+        self.line_width = line_width
+
+        self.fill = fill
+        self.opacity = opacity
+
+        self.valid = True           ### validity check to insert
+
+    def printStyleCodeLine(self):
+
+        s = "\\tikzstyle{%s}=[%s" % (self.name, self.type)
+
+        if self.draw != None:
+            s += ", draw = %s" % self.draw
+        if self.line_width != None:
+            s += ", line width = %f" % self.line_width
+        if self.dash_pattern != None:
+            s += ", dash pattern = on %f pt off %f pt" % (self.dash_pattern[0], self.dash_pattern[1])
+
+        if self.fill != None:
+            s += ", fill = %s" % self.fill
+        if self.opacity != None:
+            s += ", opacity = %f" % self.opacity
+
+        s += "]"
+        return s
+
 
