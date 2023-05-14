@@ -112,6 +112,10 @@ class LatexGraph:
 
     def addDecorationShape (self, coords, style = 'blue', shape = 0, print_type = 0):
         """ This function add a VALID DecorationShape to the vector 'decoration_shapes' """
+        if not self.isStyleDefined(style):
+            print("ERROR: the style %s is not defined" % style)
+            raise ValueError()
+
         tmp_shape = DecorationShape(coords, style, shape, print_type)
         if tmp_shape.valid:
             self.decoration_shapes.append( tmp_shape )
@@ -121,6 +125,16 @@ class LatexGraph:
         tmp_style = TikzStyle(name, type, draw, line_width, dash_pattern, fill, opacity)
         if tmp_style.valid:
             self.custom_tikz_styles.append( tmp_style )
+
+    def isStyleDefined (self, style):
+        if style in predefinedTikzStyles:
+            return True
+        else:
+            for custum_sty in self.custom_tikz_styles:
+                if style == custum_sty.name:
+                    return True
+
+            return False
 
     # --------------------------- Overlapping operator -----------------------------------
     # These functions are used for overlapping two LatexGraph or transate/enlarge them
@@ -267,21 +281,25 @@ class LatexGraph:
         for i in list(self.vertices.keys()):
             v = self.getVertex(i)
             
-            if v.color==None:
-                vertex_color = self.node_style
+            if v.style==None:
+                vertex_style = self.node_style
             else:
-                vertex_color = v.color
+                vertex_style = v.style
+
+            if not self.isStyleDefined(vertex_style):
+                print("ERROR: the style %s is not defined" % vertex_style)
+                raise ValueError()
             
             if v.name==None:
                 vertex_string = ""
             else:
-                if vertex_color != "black":
+                if vertex_style != "black":
                     vertex_string = "%s" % v.name
                 else:
                     vertex_string = "\color{white} %s" % v.name
             
 
-            print(prefix + "\t\t\\node [style=%s] (%s) at (%1.3f,%1.3f) {%s};" % (vertex_color, i, v.position[0], v.position[1], vertex_string), file= output)
+            print(prefix + "\t\t\\node [style=%s] (%s) at (%1.3f,%1.3f) {%s};" % (vertex_style, i, v.position[0], v.position[1], vertex_string), file= output)
             
         
     def edge_middle_string(self, v, u, s=None):
@@ -300,6 +318,10 @@ class LatexGraph:
                     style = self.edges_style
                 else:
                     style = v.connectedTo[u][1]
+
+                if not self.isStyleDefined(style):
+                    print("ERROR: the style %s is not defined" % style)
+                    raise ValueError()
                 
                 print(prefix + "\t\t\draw [style=%s] (%s.center) %s (%s.center);" % (style, v.getId(), self.edge_middle_string(v, u), u.getId()), file= output)
 
@@ -356,12 +378,12 @@ class LatexVertex:
         
         -----------
     """
-    def __init__(self, num, position, name, color):
+    def __init__(self, num, position, name, style):
         self.id = str(num)
         self.connectedTo = {}
         self.position = position
         self.name = name
-        self.color = color
+        self.style = style
 
     # def __lt__(self,o):
     #     return self.id < o.id
@@ -418,7 +440,7 @@ def printPreviewPackages(output):
 
 """, file= output)
 
-predefinedTikzStyles = ["rn", "gn", "yn", "blstyle", "wstyle", "gstyle", "little", "littlered", "littlepink", "littlew", "simple", "arrow", "tick", "redstyle", "bluestyle", "greenstyle", "flow", "redarrow", "redarrow2", "greenarrow", "bluearrow", "axe", "thiny", "trat", "edgenone"]
+predefinedTikzStyles = ["none", "rn", "gn", "yn", "blstyle", "wstyle", "gstyle", "little", "littlered", "littlepink", "littlew", "simple", "arrow", "tick", "redstyle", "bluestyle", "greenstyle", "flow", "redarrow", "redarrow2", "greenarrow", "bluearrow", "axe", "thiny", "trat", "edgenone"]
 
 def printTikzPreambles(output, customTikzStyles=None):
     """
@@ -714,7 +736,6 @@ class DecorationShape:
         and as a filled blue rectangle (if not specified). This function puts in 'valid'
         the result of the test 'check_coords'.
         """
-
         self.style = style
         self.coordinates = coords
         self.shape_type = supported_decoration_shapes[shape]
