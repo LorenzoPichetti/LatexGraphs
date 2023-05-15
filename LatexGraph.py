@@ -251,6 +251,38 @@ class LatexGraph:
         self.updateNetworkitGraph()
         writeGraph(self.nkitGraph, "./EdgeLists/" + file_name + ".el", graphio.Format(1))
 
+    def readEdgeList(self, file_name, latexpositonfile = False):
+        filepath = "EdgeLists/" + file_name + ".el"
+        reader = graphio.EdgeListReader(' ', 0)
+        NKitG  = reader.read(filepath)
+
+        self.readFromNKitGraph(NKitG)
+        if latexpositonfile:
+            fp = open("EdgeLists/" + file_name + ".lxp", "r")
+            count = 0
+            vnum = 0
+
+            while True:
+                count += 1
+
+                # Get next line from file
+                line = fp.readline()
+
+                # if line is empty
+                # end of file is reached
+                if not line:
+                    break
+                s = line.strip()
+                #print("Line %d: %s" % (count, s))
+                if s[0] != '#':
+                    #print("%d is not a comment" % count)
+                    tmp = [float(s.split()[0]), float(s.split()[1])]
+                    #print("float %f %f" % (tmp[0], tmp[1]))
+                    self.getVertex(vnum).position = tmp
+                    vnum += 1
+
+            fp.close()
+
     # --------------------------- Printing function -----------------------------------
     # The following functions are used to prepare the parameters for the Tikz functions
     
@@ -261,12 +293,16 @@ class LatexGraph:
         self.edges_style = string
 
     def printAsEdgelistfile(self, file_name="G_edgelist"):
-        fp = open("EdgeLists/" + file_name + ".el", "w")
-        print("# edge list generated with LatexGraph", file= fp)
-        print("# Nodes: %d Edges: %d" % (self.numVertices, -1), file= fp)
+        fpel  = open("EdgeLists/" + file_name + ".el", "w")
+        fplxp = open("EdgeLists/" + file_name + ".lxp", "w")
+        print("# edge list generated with LatexGraph", file= fpel)
+        print("# Nodes: %d Edges: %d" % (self.numVertices, -1), file= fpel)
+        print("# LatexGraph position file (the i-th rows represent the position of vertex i)", file= fplxp)
+        print("# Nodes: %d Edges: %d" % (self.numVertices, -1), file= fplxp)
         for v in self.vertices.values():
+            print("%f %f" % (v.position[0], v.position[1]), file= fplxp)
             for w in v.connectedTo.keys():
-                print("%s %s" % (v.id, w.id), file= fp)
+                print("%s %s" % (v.id, w.id), file= fpel)
         
         
     # --------------------- Tikz functions -------------------------
